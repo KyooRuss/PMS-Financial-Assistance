@@ -148,7 +148,7 @@ class AssessmentFlowTest extends TestCase
         $this->assertStringContainsString('Kept on file', $project->logs()->first()->action);
 
         $this->actingAs($this->lwd)->get(route('dashboard', ['project' => $project->id, 'drawer' => 'progress']))
-            ->assertSee('kept on file for future funding')->assertSee('No budget this year.');
+            ->assertSee('kept on file for future funding')->assertDontSee('No budget this year.');  // offices' remarks stay internal
     }
 
     public function test_emergency_priority_yes_routes_capex_to_es_and_om_to_lwrd(): void

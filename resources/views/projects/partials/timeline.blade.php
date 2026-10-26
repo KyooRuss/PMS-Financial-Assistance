@@ -16,7 +16,6 @@
                 </p>
                 <p class="mt-0.5 text-xs text-gray-500">
                     {{ $log->created_at->format('M j, Y · g:i A') }}
-                    @if ($log->user) · {{ $log->user->full_name }} @endif
                 </p>
                 {{-- Files uploaded with the action; internal office attachments are hidden from the water district. --}}
                 @php
@@ -29,9 +28,13 @@
                     </a>
                 @endforeach
 
-                @if ($log->remarks || $log->returnedItems->isNotEmpty())
+                {{-- The water district sees only the remarks on the items flagged for return, not the offices' general remarks. --}}
+                @php
+                    $showRemarks = $log->remarks && ! auth()->user()->hasRole(\App\Enums\Role::Lwd);
+                @endphp
+                @if ($showRemarks || $log->returnedItems->isNotEmpty())
                     <div class="mt-1 space-y-1 rounded bg-amber-50 px-3 py-2 text-xs text-amber-900">
-                        @if ($log->remarks)
+                        @if ($showRemarks)
                             <p>{{ $log->remarks }}</p>
                         @endif
                         @if ($log->returnedItems->isNotEmpty())
