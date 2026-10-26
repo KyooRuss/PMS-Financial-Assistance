@@ -111,7 +111,7 @@ class AdminTest extends TestCase
         $this->actingAs($this->admin)->post(route('admin.users.store'), [
             'first_name' => 'Maria', 'last_name' => 'Santos', 'email' => 'maria@hillside.test',
             'role' => 'lwd', 'water_district_id' => $this->district->id, 'password' => 'Temp-1234',
-        ])->assertRedirect(route('admin.users.index'));
+        ])->assertRedirect(route('admin.water-districts.edit', $this->district));  // water district accounts live on its page
 
         $user = User::where('email', 'maria@hillside.test')->sole();
         $this->assertTrue($user->must_change_password);
@@ -132,6 +132,36 @@ class AdminTest extends TestCase
         $this->get(route('password.setup'))->assertRedirect(route('dashboard'));
         $this->put('/password', ['current_password' => 'My-own-pass-99', 'password' => 'Another-pass-1', 'password_confirmation' => 'Another-pass-1'])
             ->assertForbidden();
+    }
+
+    public function test_water_district_accounts_are_only_on_the_water_district_page(): void
+    {
+        $member = User::factory()->create(['role' => Role::Lwd, 'water_district_id' => $this->district->id, 'first_name' => 'Maria', 'middle_name' => null, 'last_name' => 'Santos']);
+        $staff = User::factory()->create(['role' => Role::Es, 'first_name' => 'Ernesto', 'middle_name' => null, 'last_name' => 'Engineer']);
+
+        // The Accounts page lists LWUA staff only, and its form offers no water district role.
+        $this->actingAs($this->admin)->get(route('admin.users.index'))
+            ->assertSee('Ernesto Engineer')->assertDontSee('Maria Santos');
+        $this->actingAs($this->admin)->get(route('admin.users.index', ['role' => 'lwd']))->assertDontSee('Maria Santos');
+        $this->actingAs($this->admin)->get(route('admin.users.create'))
+            ->assertOk()->assertDontSee('value="lwd"', false)->assertDontSee('water_district_id');
+
+        // The water district's page lists its accounts and adds new ones.
+        $this->actingAs($this->admin)->get(route('admin.water-districts.edit', $this->district))
+            ->assertSee('Maria Santos')->assertSee($member->email)->assertSee('Active')
+            ->assertSee(route('admin.users.create', ['water_district' => $this->district->id]))
+            ->assertDontSee('Ernesto Engineer');
+        $this->actingAs($this->admin)->get(route('admin.users.create', ['water_district' => $this->district->id]))
+            ->assertOk()->assertSee('Hillside Water District')->assertSee('name="role" value="lwd"', false);
+
+        // Editing a water district account goes back to its water district.
+        $this->actingAs($this->admin)->get(route('admin.users.edit', $member))->assertSee(route('admin.water-districts.edit', $this->district));
+        $this->actingAs($this->admin)->put(route('admin.users.update', $member), [
+            'first_name' => 'Maria', 'last_name' => 'Reyes', 'email' => $member->email, 'role' => 'lwd', 'water_district_id' => $this->district->id,
+        ])->assertRedirect(route('admin.water-districts.edit', $this->district));
+        $this->actingAs($this->admin)->put(route('admin.users.update', $staff), [
+            'first_name' => 'Ernesto', 'last_name' => 'Engineer', 'email' => $staff->email, 'role' => 'es',
+        ])->assertRedirect(route('admin.users.index'));
     }
 
     public function test_account_rules(): void

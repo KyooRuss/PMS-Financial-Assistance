@@ -1,12 +1,18 @@
-{{-- Create or edit an account. Editing also offers "reset password" and "make inactive". --}}
+{{--
+    Create or edit an account. Editing also offers "reset password" and "make inactive".
+    With $district (opened from a water district's page, or editing one of its accounts) this is a water district
+    account; otherwise it is an LWUA staff account from the Accounts page.
+--}}
 @php
     $isSelf = $user->exists && $user->is(auth()->user());
+    $isWaterDistrict = $district !== null;
+    $backUrl = $isWaterDistrict ? route('admin.water-districts.edit', $district) : route('admin.users.index');
 @endphp
 
 <x-app-layout>
     <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         <div>
-            <a href="{{ route('admin.users.index') }}" class="text-sm font-medium text-lwua-blue hover:underline">&larr; {{ __('Accounts') }}</a>
+            <a href="{{ $backUrl }}" class="text-sm font-medium text-lwua-blue hover:underline">&larr; {{ $isWaterDistrict ? $district->name : __('Department Accounts') }}</a>
             <h1 class="mt-2 text-2xl font-bold text-lwua-navy">{{ $user->exists ? $user->full_name : __('New Account') }}</h1>
             @if ($user->exists)
                 <p class="mt-1 text-sm text-gray-500">
@@ -17,7 +23,6 @@
         </div>
 
         <form method="POST" action="{{ $user->exists ? route('admin.users.update', $user) : route('admin.users.store') }}"
-              x-data="{ role: @js(old('role', $user->role?->value)) }"
               class="space-y-5 rounded-lg bg-white p-6 shadow-md ring-1 ring-black/5">
             @csrf
             @if ($user->exists) @method('PUT') @endif
@@ -38,12 +43,30 @@
                 <x-input-error class="mt-1" :messages="$errors->get('email')" />
             </div>
 
-            <div class="grid gap-5 sm:grid-cols-2">
+            @if ($isWaterDistrict)
+                {{-- Water district account: the role is fixed; the district can be changed if the user moves. --}}
+                <input type="hidden" name="role" value="{{ \App\Enums\Role::Lwd->value }}">
                 <div>
+                    <x-input-label for="water_district_id" :value="__('Water District')" />
+                    <select id="water_district_id" name="water_district_id" required
+                            class="mt-1 block w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-lwua-blue focus:ring-lwua-blue">
+                        @foreach ($districts as $option)
+                            <option value="{{ $option->id }}" @selected((int) old('water_district_id', $user->water_district_id) === $option->id)>
+                                {{ $option->name }} ({{ __('Category :c', ['c' => $option->category]) }})
+                            </option>
+                        @endforeach
+                    </select>
+                    <x-input-error class="mt-1" :messages="$errors->get('water_district_id')" />
+                    <x-input-error class="mt-1" :messages="$errors->get('role')" />
+                </div>
+            @else
+                {{-- LWUA staff account. --}}
+                <div class="sm:w-1/2">
                     <x-input-label for="role" :value="__('Role')" />
-                    <select id="role" name="role" x-model="role" required @disabled($isSelf)
+                    <select id="role" name="role" required @disabled($isSelf)
                             class="mt-1 block w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-lwua-blue focus:ring-lwua-blue disabled:bg-gray-100">
                         @foreach (\App\Enums\Role::cases() as $role)
+                            @continue($role === \App\Enums\Role::Lwd)
                             <option value="{{ $role->value }}" @selected(old('role', $user->role?->value) === $role->value)>{{ $role->label() }}</option>
                         @endforeach
                     </select>
@@ -54,21 +77,7 @@
                     @endif
                     <x-input-error class="mt-1" :messages="$errors->get('role')" />
                 </div>
-
-                <div x-show="role === 'lwd'" x-cloak>
-                    <x-input-label for="water_district_id" :value="__('Water District')" />
-                    <select id="water_district_id" name="water_district_id" :disabled="role !== 'lwd'"
-                            class="mt-1 block w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-lwua-blue focus:ring-lwua-blue">
-                        <option value="">{{ __('Choose…') }}</option>
-                        @foreach ($districts as $district)
-                            <option value="{{ $district->id }}" @selected((int) old('water_district_id', $user->water_district_id) === $district->id)>
-                                {{ $district->name }} ({{ __('Category :c', ['c' => $district->category]) }})
-                            </option>
-                        @endforeach
-                    </select>
-                    <x-input-error class="mt-1" :messages="$errors->get('water_district_id')" />
-                </div>
-            </div>
+            @endif
 
             @unless ($user->exists)
                 <div>
@@ -80,7 +89,7 @@
             @endunless
 
             <div class="flex items-center justify-end gap-3">
-                <a href="{{ route('admin.users.index') }}" class="text-sm font-medium text-gray-500 hover:text-gray-800">{{ __('Cancel') }}</a>
+                <a href="{{ $backUrl }}" class="text-sm font-medium text-gray-500 hover:text-gray-800">{{ __('Cancel') }}</a>
                 <button type="submit" class="rounded-md bg-lwua-dark px-6 py-2.5 text-sm font-semibold uppercase text-white shadow hover:brightness-110">
                     {{ $user->exists ? __('Save Changes') : __('Create Account') }}
                 </button>

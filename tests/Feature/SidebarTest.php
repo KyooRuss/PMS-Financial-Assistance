@@ -27,7 +27,7 @@ class SidebarTest extends TestCase
             ->get(route('admin.overview'))
             ->assertOk()
             ->assertSee('Admin Portal')
-            ->assertSeeInOrder(['All Requests', 'Status', 'In Progress', 'Workflow Step', 'WSUDD / UDEV', 'Kept on file', 'Manage', 'Accounts', 'Processing Time'])
+            ->assertSeeInOrder(['All Requests', 'Status', 'In Progress', 'Workflow Step', 'WSUDD / UDEV', 'Kept on file', 'Manage', 'Department Accounts', 'Water Districts', 'Processing Time'])
             ->assertSee(route('admin.projects.index', ['waiting' => 'cpic']), false)
             ->assertDontSee('Request Project');
     }

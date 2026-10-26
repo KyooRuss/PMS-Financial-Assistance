@@ -16,6 +16,9 @@ use Illuminate\View\View;
 /**
  * Account management. LWUA creates every account; accounts are made inactive, never deleted,
  * so names stay on the timeline and on uploaded files.
+ *
+ * The Accounts page lists LWUA staff only. Water district accounts are listed and added from their
+ * water district's page, but use the same form here (opened with ?water_district={id}).
  */
 class UserController extends Controller
 {
@@ -24,7 +27,7 @@ class UserController extends Controller
         $search = trim((string) $request->query('q'));
 
         $users = User::query()
-            ->with('waterDistrict')
+            ->whereNot('role', Role::Lwd)
             ->when($search !== '', fn (Builder $query) => $query->where(fn (Builder $query) => $query
                 ->where('first_name', 'like', "%{$search}%")
                 ->orWhere('last_name', 'like', "%{$search}%")
@@ -40,9 +43,18 @@ class UserController extends Controller
         return view('admin.users.index', ['users' => $users]);
     }
 
-    public function create(): View
+    /**
+     * A new LWUA staff account, or (with ?water_district={id}) a new account for that water district.
+     */
+    public function create(Request $request): View
     {
-        return view('admin.users.form', ['user' => new User(['role' => Role::Lwd]), 'districts' => WaterDistrict::orderBy('name')->get()]);
+        $district = WaterDistrict::find($request->integer('water_district'));
+
+        return view('admin.users.form', [
+            'user' => new User(['role' => $district ? Role::Lwd : Role::Wsudd, 'water_district_id' => $district?->id]),
+            'district' => $district,
+            'districts' => WaterDistrict::orderBy('name')->get(),
+        ]);
     }
 
     public function store(SaveUserRequest $request): RedirectResponse
@@ -54,20 +66,34 @@ class UserController extends Controller
             'email_verified_at' => now(),
         ]);
 
-        return redirect()->route('admin.users.index')
+        return $this->backToList($user)
             ->with('success', __('Account created for :name. Give them the temporary password; they will set their own on first login.', ['name' => $user->full_name]));
     }
 
     public function edit(User $user): View
     {
-        return view('admin.users.form', ['user' => $user, 'districts' => WaterDistrict::orderBy('name')->get()]);
+        return view('admin.users.form', [
+            'user' => $user,
+            'district' => $user->waterDistrict,
+            'districts' => WaterDistrict::orderBy('name')->get(),
+        ]);
     }
 
     public function update(SaveUserRequest $request, User $user): RedirectResponse
     {
         $user->update([...$request->validated(), 'water_district_id' => $request->validated('water_district_id')]);
 
-        return redirect()->route('admin.users.index')->with('success', __('Account updated: :name.', ['name' => $user->full_name]));
+        return $this->backToList($user)->with('success', __('Account updated: :name.', ['name' => $user->full_name]));
+    }
+
+    /**
+     * Water district accounts live on their water district's page; everyone else on the Accounts page.
+     */
+    private function backToList(User $user): RedirectResponse
+    {
+        return $user->hasRole(Role::Lwd) && $user->water_district_id
+            ? redirect()->route('admin.water-districts.edit', $user->water_district_id)
+            : redirect()->route('admin.users.index');
     }
 
     /**

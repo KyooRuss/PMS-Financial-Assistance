@@ -33,7 +33,7 @@
                         <th scope="col" class="px-6 py-3 text-left">{{ __('Name') }}</th>
                         <th scope="col" class="px-6 py-3 text-left">{{ __('Category') }}</th>
                         <th scope="col" class="px-6 py-3 text-left">{{ __('Address') }}</th>
-                        <th scope="col" class="px-6 py-3 text-right">{{ __('Users') }}</th>
+                        <th scope="col" class="px-6 py-3 text-right">{{ __('Accounts') }}</th>
                         <th scope="col" class="px-6 py-3 text-right">{{ __('Projects') }}</th>
                         <th scope="col" class="px-6 py-3"><span class="sr-only">{{ __('Actions') }}</span></th>
                     </tr>
@@ -44,7 +44,9 @@
                             <td class="px-6 py-3 font-medium text-gray-900">{{ $district->name }}</td>
                             <td class="px-6 py-3 text-gray-700">{{ $district->category }}</td>
                             <td class="px-6 py-3 text-gray-700">{{ $district->address ?? '—' }}</td>
-                            <td class="px-6 py-3 text-right text-gray-900">{{ $district->users_count }}</td>
+                            <td class="px-6 py-3 text-right">
+                                <a href="{{ route('admin.water-districts.edit', $district) }}" class="text-lwua-blue hover:underline">{{ $district->users_count }}</a>
+                            </td>
                             <td class="px-6 py-3 text-right">
                                 <a href="{{ route('admin.projects.index', ['district' => $district->id]) }}" class="text-lwua-blue hover:underline">{{ $district->projects_count }}</a>
                             </td>

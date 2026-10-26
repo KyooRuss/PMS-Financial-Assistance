@@ -1,6 +1,6 @@
 <x-app-layout>
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-        @include('admin.partials.heading', ['title' => __('Accounts'), 'subtitle' => __('Water district users and LWUA staff. Accounts are made inactive instead of deleted, so names stay on the timeline and on uploaded files.')])
+        @include('admin.partials.heading', ['title' => __('Department Accounts'), 'subtitle' => __('LWUA staff accounts. Water district accounts are on each water district\'s page. Accounts are made inactive instead of deleted, so names stay on the timeline and on uploaded files.')])
 
         <div class="flex flex-wrap items-end justify-between gap-3">
             <form method="GET" class="flex flex-wrap items-end gap-3">
@@ -14,6 +14,7 @@
                     <select id="role" name="role" class="mt-1 rounded-md border-gray-300 text-sm shadow-sm focus:border-lwua-blue focus:ring-lwua-blue">
                         <option value="">{{ __('All') }}</option>
                         @foreach (\App\Enums\Role::cases() as $role)
+                            @continue($role === \App\Enums\Role::Lwd)
                             <option value="{{ $role->value }}" @selected(request('role') === $role->value)>{{ $role->label() }}</option>
                         @endforeach
                     </select>
@@ -44,7 +45,6 @@
                         <th scope="col" class="px-6 py-3 text-left">{{ __('Name') }}</th>
                         <th scope="col" class="px-6 py-3 text-left">{{ __('Email') }}</th>
                         <th scope="col" class="px-6 py-3 text-left">{{ __('Role') }}</th>
-                        <th scope="col" class="px-6 py-3 text-left">{{ __('Water District') }}</th>
                         <th scope="col" class="px-6 py-3 text-left">{{ __('Status') }}</th>
                         <th scope="col" class="px-6 py-3"><span class="sr-only">{{ __('Actions') }}</span></th>
                     </tr>
@@ -61,13 +61,6 @@
                             <td class="px-6 py-3">{{ $user->email }}</td>
                             <td class="px-6 py-3 whitespace-nowrap">{{ $user->role->shortLabel() }}</td>
                             <td class="px-6 py-3">
-                                @if ($user->waterDistrict)
-                                    {{ $user->waterDistrict->name }} <span class="text-xs text-gray-500">({{ $user->waterDistrict->category }})</span>
-                                @else
-                                    —
-                                @endif
-                            </td>
-                            <td class="px-6 py-3">
                                 <span @class(['rounded-full px-2.5 py-0.5 text-xs font-medium', 'bg-green-50 text-green-700' => $user->is_active, 'bg-gray-100 text-gray-500' => ! $user->is_active])>
                                     {{ $user->is_active ? __('Active') : __('Inactive') }}
                                 </span>
@@ -77,7 +70,7 @@
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="6" class="px-6 py-10 text-center text-gray-500">{{ __('No accounts match these filters.') }}</td></tr>
+                        <tr><td colspan="5" class="px-6 py-10 text-center text-gray-500">{{ __('No accounts match these filters.') }}</td></tr>
                     @endforelse
                 </tbody>
             </table>

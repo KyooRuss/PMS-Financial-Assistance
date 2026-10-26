@@ -98,7 +98,7 @@
                 <div class="space-y-0.5">
                     <x-sidebar-link :href="route('admin.users.index')" :active="request()->routeIs('admin.users.*')">
                         <x-slot:icon>{!! $icon('M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z') !!}</x-slot:icon>
-                        {{ __('Accounts') }}
+                        {{ __('Department Accounts') }}
                     </x-sidebar-link>
                     <x-sidebar-link :href="route('admin.water-districts.index')" :active="request()->routeIs('admin.water-districts.*')">
                         <x-slot:icon>{!! $icon('M12 3c-3 4-6 7.5-6 11a6 6 0 0012 0c0-3.5-3-7-6-11z') !!}</x-slot:icon>
