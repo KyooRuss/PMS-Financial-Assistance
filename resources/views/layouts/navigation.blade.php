@@ -45,9 +45,11 @@
 
                         <div class="border-t border-gray-100"></div>
 
-                        <x-dropdown-link :href="route('profile.edit')">
-                            {{ __('My Profile') }}
-                        </x-dropdown-link>
+                        @if ($user->hasRole(\App\Enums\Role::SystemAdmin))
+                            <x-dropdown-link :href="route('profile.edit')">
+                                {{ __('My Profile') }}
+                            </x-dropdown-link>
+                        @endif
 
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf

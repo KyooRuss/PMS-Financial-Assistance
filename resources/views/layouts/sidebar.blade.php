@@ -165,8 +165,11 @@
                 </button>
             </form>
         </div>
-        <a href="{{ route('profile.edit') }}" @class(['mt-3 block rounded-md px-3 py-1.5 text-center text-xs', 'bg-white text-lwua-navy font-semibold' => request()->routeIs('profile.edit'), 'text-white/80 ring-1 ring-white/20 hover:bg-white/10' => ! request()->routeIs('profile.edit')])>
-            {{ __('My Profile') }}
-        </a>
+        {{-- Only the System Admin edits their own account; everyone else's is managed by the System Admin. --}}
+        @if ($user->hasRole(\App\Enums\Role::SystemAdmin))
+            <a href="{{ route('profile.edit') }}" @class(['mt-3 block rounded-md px-3 py-1.5 text-center text-xs', 'bg-white text-lwua-navy font-semibold' => request()->routeIs('profile.edit'), 'text-white/80 ring-1 ring-white/20 hover:bg-white/10' => ! request()->routeIs('profile.edit')])>
+                {{ __('My Profile') }}
+            </a>
+        @endif
     </div>
 </aside>

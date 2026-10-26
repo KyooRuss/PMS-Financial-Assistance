@@ -126,15 +126,21 @@ class AdminTest extends TestCase
         $this->assertTrue($user->must_change_password);
         $this->assertTrue($user->waterDistrict->is($this->district));
 
-        // First login: every page sends them to set their own password.
+        // First login: every page sends them to the one-time "Set your password" screen.
         auth()->logout();
         $this->post('/login', ['email' => 'maria@hillside.test', 'password' => 'Temp-1234']);
-        $this->get('/dashboard')->assertRedirect(route('profile.edit'));
+        $this->get('/dashboard')->assertRedirect(route('password.setup'));
+        $this->get(route('password.setup'))->assertOk()->assertSee('Set your password')->assertSee('Temporary Password');
 
         $this->put('/password', ['current_password' => 'Temp-1234', 'password' => 'My-own-pass-99', 'password_confirmation' => 'My-own-pass-99'])
             ->assertRedirect(route('dashboard'));
         $this->assertFalse($user->fresh()->must_change_password);
         $this->get('/dashboard')->assertOk();
+
+        // After that, they can't change it again.
+        $this->get(route('password.setup'))->assertRedirect(route('dashboard'));
+        $this->put('/password', ['current_password' => 'My-own-pass-99', 'password' => 'Another-pass-1', 'password_confirmation' => 'Another-pass-1'])
+            ->assertForbidden();
     }
 
     public function test_account_rules(): void

@@ -8,66 +8,32 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
+/**
+ * There is no "forgot password": a user who forgets it asks the System Admin to reset it.
+ */
 class PasswordResetTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_reset_password_link_screen_can_be_rendered(): void
+    public function test_the_login_page_has_no_forgot_password_link(): void
     {
-        $response = $this->get('/forgot-password');
-
-        $response->assertStatus(200);
+        $this->get('/login')
+            ->assertOk()
+            ->assertDontSee('/forgot-password')
+            ->assertSee('Ask the System Admin to reset it.');
     }
 
-    public function test_reset_password_link_can_be_requested(): void
+    public function test_password_reset_by_email_is_turned_off(): void
     {
         Notification::fake();
-
         $user = User::factory()->create();
 
-        $this->post('/forgot-password', ['email' => $user->email]);
+        $this->get('/forgot-password')->assertNotFound();
+        $this->post('/forgot-password', ['email' => $user->email])->assertNotFound();
+        $this->get('/reset-password/some-token')->assertNotFound();
+        $this->post('/reset-password', ['token' => 'x', 'email' => $user->email, 'password' => 'new-password', 'password_confirmation' => 'new-password'])
+            ->assertNotFound();
 
-        Notification::assertSentTo($user, ResetPassword::class);
-    }
-
-    public function test_reset_password_screen_can_be_rendered(): void
-    {
-        Notification::fake();
-
-        $user = User::factory()->create();
-
-        $this->post('/forgot-password', ['email' => $user->email]);
-
-        Notification::assertSentTo($user, ResetPassword::class, function ($notification) {
-            $response = $this->get('/reset-password/'.$notification->token);
-
-            $response->assertStatus(200);
-
-            return true;
-        });
-    }
-
-    public function test_password_can_be_reset_with_valid_token(): void
-    {
-        Notification::fake();
-
-        $user = User::factory()->create();
-
-        $this->post('/forgot-password', ['email' => $user->email]);
-
-        Notification::assertSentTo($user, ResetPassword::class, function ($notification) use ($user) {
-            $response = $this->post('/reset-password', [
-                'token' => $notification->token,
-                'email' => $user->email,
-                'password' => 'password',
-                'password_confirmation' => 'password',
-            ]);
-
-            $response
-                ->assertSessionHasNoErrors()
-                ->assertRedirect(route('login'));
-
-            return true;
-        });
+        Notification::assertNotSentTo($user, ResetPassword::class);
     }
 }
