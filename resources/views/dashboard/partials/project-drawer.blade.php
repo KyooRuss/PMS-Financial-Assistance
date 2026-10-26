@@ -45,7 +45,7 @@
             @if ($project->status === \App\Enums\ProjectStatus::Returned)
                 <div class="mt-4 flex items-center justify-between gap-3 rounded-md bg-amber-50 px-4 py-3 text-sm text-amber-900 ring-1 ring-amber-200">
                     <span>{{ __('WSUDD returned this request. Fix the flagged items and resubmit.') }}</span>
-                    <a href="{{ route('projects.edit', $project) }}" class="shrink-0 rounded bg-amber-600 px-3 py-1.5 text-xs font-semibold uppercase text-white hover:bg-amber-700">{{ __('Fix & Resubmit') }}</a>
+                    <a href="{{ route('projects.edit', $project) }}" class="shrink-0 rounded bg-amber-600 px-3 py-1.5 text-xs font-semibold uppercase text-white hover:bg-amber-700">{{ __('Resubmit') }}</a>
                 </div>
             @endif
 

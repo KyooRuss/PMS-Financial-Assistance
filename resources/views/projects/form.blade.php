@@ -25,12 +25,6 @@
             <span class="rounded-full bg-white px-6 py-2 text-sm font-bold uppercase text-red-700 shadow ring-1 ring-black/10">
                 {{ $type->shortLabel() }}
             </span>
-
-            @if ($project->exists)
-                <span class="text-sm text-gray-500">
-                    <span class="font-semibold text-lwua-navy">{{ $project->reference }}</span> · {{ $project->status->label() }}
-                </span>
-            @endif
         </div>
         <p class="mt-2 text-sm text-gray-600">{{ $type->isEmergency() ? __('Emergency Loan') : __('Regular Loan') }}</p>
 
