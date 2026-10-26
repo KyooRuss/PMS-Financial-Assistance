@@ -34,9 +34,6 @@ Route::middleware(['auth', 'role:lwd'])->group(function () {
 Route::middleware(['auth', 'role:system_admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', Admin\OverviewController::class)->name('overview');
     Route::get('/projects', [Admin\ProjectController::class, 'index'])->name('projects.index');
-    Route::get('/files', [Admin\DocumentController::class, 'index'])->name('documents.index');
-    Route::get('/departments', [Admin\DepartmentController::class, 'index'])->name('departments.index');
-    Route::get('/activity', [Admin\ActivityController::class, 'index'])->name('activity.index');
 
     Route::resource('users', Admin\UserController::class)->except(['show', 'destroy']);
     Route::patch('/users/{user}/active', [Admin\UserController::class, 'toggleActive'])->name('users.toggle-active');

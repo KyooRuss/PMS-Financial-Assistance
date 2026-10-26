@@ -9,8 +9,6 @@ use App\Models\User;
 use App\Models\WaterDistrict;
 use Database\Seeders\RequirementSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class AdminTest extends TestCase
@@ -36,7 +34,7 @@ class AdminTest extends TestCase
 
     public function test_only_the_system_admin_can_open_the_admin_area(): void
     {
-        foreach (['admin.overview', 'admin.projects.index', 'admin.documents.index', 'admin.users.index', 'admin.water-districts.index', 'admin.departments.index', 'admin.activity.index'] as $route) {
+        foreach (['admin.overview', 'admin.projects.index', 'admin.users.index', 'admin.water-districts.index'] as $route) {
             $this->actingAs($this->admin)->get(route($route))->assertOk();
             $this->actingAs(User::factory()->create(['role' => Role::Administrator]))->get(route($route))->assertForbidden();
             $this->actingAs($this->lwdUser())->get(route($route))->assertForbidden();
@@ -102,17 +100,10 @@ class AdminTest extends TestCase
             ->assertSee($row($completed), false)->assertDontSee($row($returned), false);
     }
 
-    public function test_files_list_every_upload_with_kind_filter(): void
+    public function test_there_is_no_files_page(): void
     {
-        Storage::fake('local');
-        $user = $this->lwdUser();
-        $project = Project::factory()->for($user)->create();
-        $project->addDocument(UploadedFile::fake()->create('internal-memo.pdf', 10, 'application/pdf'), $this->admin, internal: true);
-        $project->addDocument(UploadedFile::fake()->create('letter.pdf', 10, 'application/pdf'), $this->admin);
-
-        $this->actingAs($this->admin)->get(route('admin.documents.index'))->assertSee('internal-memo.pdf')->assertSee('letter.pdf');
-        $this->actingAs($this->admin)->get(route('admin.documents.index', ['kind' => 'internal']))
-            ->assertSee('internal-memo.pdf')->assertDontSee('letter.pdf');
+        $this->actingAs($this->admin)->get('/admin/files')->assertNotFound();
+        $this->actingAs($this->admin)->get(route('admin.overview'))->assertDontSee('/admin/files');
     }
 
     public function test_admin_creates_an_account_with_a_temporary_password(): void
@@ -213,19 +204,18 @@ class AdminTest extends TestCase
         $this->assertSame('D', $district->fresh()->category);
     }
 
-    public function test_departments_and_activity_pages(): void
+    public function test_there_are_no_departments_or_activity_log_pages(): void
     {
         $user = $this->lwdUser();
         $project = Project::factory()->for($user)->create(['status' => ProjectStatus::Submitted, 'current_step' => 2]);
         $project->log($user, 'Submitted the request and requirements', office: 'LWD');
-        User::factory()->create(['role' => Role::Wsudd, 'first_name' => 'Wendy', 'middle_name' => null, 'last_name' => 'Checker']);
 
-        $this->actingAs($this->admin)->get(route('admin.departments.index'))
-            ->assertSee('WSUDD / UDEV')->assertSee('Wendy Checker')->assertSee('Legal Department');
+        $this->actingAs($this->admin)->get('/admin/departments')->assertNotFound();
+        $this->actingAs($this->admin)->get('/admin/activity')->assertNotFound();
 
-        $this->actingAs($this->admin)->get(route('admin.activity.index', ['office' => 'LWD']))
-            ->assertSee('Submitted the request and requirements')->assertSee($project->reference);
-        $this->actingAs($this->admin)->get(route('admin.activity.index', ['office' => 'ES']))
-            ->assertDontSee('Submitted the request and requirements');
+        // The Overview still lists recent activity, without a link to a full log.
+        $this->actingAs($this->admin)->get(route('admin.overview'))
+            ->assertSee('Recent activity')->assertSee('Submitted the request and requirements')
+            ->assertDontSee('Activity Log')->assertDontSee('Departments');
     }
 }
