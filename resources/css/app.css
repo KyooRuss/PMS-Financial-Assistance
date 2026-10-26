@@ -3,3 +3,13 @@
 @tailwind utilities;
 
 [x-cloak] { display: none !important; }
+
+/* Sidebar scrollbar: transparent track so the navy panel shows through, with a soft white handle. */
+.sidebar-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(255 255 255 / 0.25) transparent;
+}
+.sidebar-scroll::-webkit-scrollbar { width: 8px; }
+.sidebar-scroll::-webkit-scrollbar-track { background: transparent; }
+.sidebar-scroll::-webkit-scrollbar-thumb { background: rgb(255 255 255 / 0.25); border-radius: 9999px; }
+.sidebar-scroll::-webkit-scrollbar-thumb:hover { background: rgb(255 255 255 / 0.4); }

@@ -45,7 +45,7 @@
         </button>
     </div>
 
-    <nav class="flex-1 space-y-5 overflow-y-auto px-3 py-4">
+    <nav class="sidebar-scroll flex-1 space-y-5 overflow-y-auto px-3 py-4">
         @if ($isAdmin)
             <div class="space-y-1">
                 <x-sidebar-link :href="route('admin.overview')" :active="request()->routeIs('admin.overview')">
