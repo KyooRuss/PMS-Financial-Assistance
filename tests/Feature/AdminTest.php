@@ -57,9 +57,10 @@ class AdminTest extends TestCase
     public function test_admin_can_view_any_project_but_not_act(): void
     {
         $this->seed(RequirementSeeder::class);
-        $project = Project::factory()->for($this->lwdUser())->create(['status' => ProjectStatus::Submitted, 'current_step' => 2, 'title' => 'Admin Visible Project']);
+        $project = Project::factory()->for($this->lwdUser())->create(['status' => ProjectStatus::Submitted, 'current_step' => 2]);
 
-        $this->actingAs($this->admin)->get(route('admin.projects.index', ['q' => $project->reference]))->assertSee('Admin Visible Project');
+        $this->actingAs($this->admin)->get(route('admin.projects.index', ['q' => $project->reference]))->assertSee($project->reference);
+        // The Action box is only shown to the office whose turn it is, so the admin sees no buttons.
         $this->actingAs($this->admin)->get(route('office.projects.show', $project))
             ->assertOk()->assertSee('All Projects')->assertDontSee('Flag for return')->assertSee('Waiting on WSUDD / UDEV');
         $this->actingAs($this->admin)->post(route('office.projects.endorse', $project))->assertForbidden();
@@ -68,13 +69,16 @@ class AdminTest extends TestCase
     public function test_projects_can_be_filtered(): void
     {
         $user = $this->lwdUser();
-        Project::factory()->for($user)->create(['title' => 'Returned One', 'status' => ProjectStatus::Returned]);
-        Project::factory()->for($user)->create(['title' => 'Completed One', 'status' => ProjectStatus::Completed]);
+        $returned = Project::factory()->for($user)->create(['status' => ProjectStatus::Returned]);
+        $completed = Project::factory()->for($user)->create(['status' => ProjectStatus::Completed]);
+
+        // Look for the reference in its table cell; the search box placeholder also mentions "P001".
+        $row = fn (Project $project) => '>'.$project->reference.'</td>';
 
         $this->actingAs($this->admin)->get(route('admin.projects.index', ['status' => 'returned']))
-            ->assertSee('Returned One')->assertDontSee('Completed One');
-        $this->actingAs($this->admin)->get(route('admin.projects.index', ['q' => 'Completed']))
-            ->assertSee('Completed One')->assertDontSee('Returned One');
+            ->assertSee($row($returned), false)->assertDontSee($row($completed), false);
+        $this->actingAs($this->admin)->get(route('admin.projects.index', ['q' => $completed->reference]))
+            ->assertSee($row($completed), false)->assertDontSee($row($returned), false);
     }
 
     public function test_files_list_every_upload_with_kind_filter(): void

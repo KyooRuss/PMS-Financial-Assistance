@@ -109,7 +109,7 @@ class ProjectDrawerTest extends TestCase
         }
 
         $this->actingAs($user)->put(route('projects.update', $project), [
-            'action' => 'submit', 'title' => $project->title, 'amount' => 30_000_000,
+            'action' => 'submit', 'amount' => 30_000_000,
         ])->assertSessionHasNoErrors();
 
         $log = $project->logs()->sole();
@@ -121,14 +121,14 @@ class ProjectDrawerTest extends TestCase
     public function test_drawer_cannot_open_another_districts_project(): void
     {
         $user = $this->lwdUser();
-        Project::factory()->for($user)->create(['title' => 'Mine']);
-        $foreign = Project::factory()->for($this->lwdUser('A'))->create(['title' => 'Theirs']);
+        $mine = Project::factory()->for($user)->create();
+        $foreign = Project::factory()->for($this->lwdUser('A'))->create();
 
         $this->actingAs($user)
             ->get(route('dashboard', ['project' => $foreign->id, 'drawer' => 'files']))
             ->assertOk()
-            ->assertViewHas('selected', fn (Project $selected) => $selected->title === 'Mine')
-            ->assertDontSee('Theirs');
+            ->assertViewHas('selected', fn (Project $selected) => $selected->is($mine))
+            ->assertDontSee($foreign->reference);
     }
 
     public function test_unknown_drawer_value_is_ignored(): void

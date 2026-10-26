@@ -5,7 +5,7 @@
         <form method="GET" class="flex flex-wrap items-end gap-3">
             <div>
                 <label for="q" class="block text-xs font-medium text-gray-600">{{ __('Search') }}</label>
-                <input id="q" name="q" type="search" value="{{ request('q') }}" placeholder="{{ __('Title or P005') }}"
+                <input id="q" name="q" type="search" value="{{ request('q') }}" placeholder="{{ __('P001 or Category A') }}"
                        class="mt-1 w-56 rounded-md border-gray-300 text-sm shadow-sm focus:border-lwua-blue focus:ring-lwua-blue">
             </div>
             <div>
@@ -78,7 +78,6 @@
                                 @if ($project->funding_purpose) <span class="text-xs text-gray-500">({{ $project->funding_purpose->label() }})</span> @endif
                             </td>
                             <td class="max-w-xs px-6 py-3">
-                                <p class="truncate text-gray-800" title="{{ $project->title }}">{{ $project->title }}</p>
                                 @if ($project->amount) <p class="text-xs tabular-nums text-gray-500">₱{{ number_format($project->amount, 2) }}</p> @endif
                             </td>
                             <td class="px-6 py-3 whitespace-nowrap">

@@ -59,14 +59,14 @@ class SidebarTest extends TestCase
     public function test_in_progress_filter_groups_the_active_statuses(): void
     {
         $user = $this->lwdUser();
-        Project::factory()->for($user)->create(['title' => 'Active Returned', 'status' => ProjectStatus::Returned]);
-        Project::factory()->for($user)->create(['title' => 'Active Approved', 'status' => ProjectStatus::Approved, 'current_step' => 13]);
-        Project::factory()->for($user)->create(['title' => 'Closed Completed', 'status' => ProjectStatus::Completed]);
-        Project::factory()->for($user)->draft()->create(['title' => 'Just A Draft']);
+        $returned = Project::factory()->for($user)->create(['status' => ProjectStatus::Returned]);
+        $approved = Project::factory()->for($user)->create(['status' => ProjectStatus::Approved, 'current_step' => 13]);
+        $completed = Project::factory()->for($user)->create(['status' => ProjectStatus::Completed]);
+        $draft = Project::factory()->for($user)->draft()->create();
 
         $this->actingAs(User::factory()->create(['role' => Role::SystemAdmin]))
             ->get(route('admin.projects.index', ['status' => 'in_progress']))
-            ->assertSee('Active Returned')->assertSee('Active Approved')
-            ->assertDontSee('Closed Completed')->assertDontSee('Just A Draft');
+            ->assertSee($returned->reference)->assertSee($approved->reference)
+            ->assertDontSee($completed->reference)->assertDontSee($draft->reference);
     }
 }

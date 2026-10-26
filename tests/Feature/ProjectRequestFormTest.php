@@ -79,7 +79,6 @@ class ProjectRequestFormTest extends TestCase
         $response = $this->actingAs($user)->post(route('projects.store'), [
             'type' => ProjectType::Regular50MBelow->value,
             'action' => 'draft',
-            'title' => 'Pipeline Rehabilitation',
             'documents' => [$itemOne => [$this->pdf()]],
         ]);
 
@@ -97,7 +96,6 @@ class ProjectRequestFormTest extends TestCase
         $this->actingAs($this->lwdUser())->post(route('projects.store'), [
             'type' => ProjectType::Regular50MBelow->value,
             'action' => 'submit',
-            'title' => 'Pipeline Rehabilitation',
             'amount' => 30_000_000,
             'documents' => [$this->requirementId(ProjectType::Regular50MBelow, 1) => [$this->pdf()]],
         ])->assertSessionHasErrors([
@@ -117,7 +115,6 @@ class ProjectRequestFormTest extends TestCase
         $this->actingAs($this->lwdUser())->post(route('projects.store'), [
             'type' => ProjectType::Regular50MBelow->value,
             'action' => 'submit',
-            'title' => 'Pipeline Rehabilitation',
             'amount' => 30_000_000,
             'documents' => $this->requiredFiles(ProjectType::Regular50MBelow),
         ])->assertSessionHasNoErrors();
@@ -134,15 +131,15 @@ class ProjectRequestFormTest extends TestCase
         $user = $this->lwdUser();
 
         $this->actingAs($user)->post(route('projects.store'), [
-            'type' => ProjectType::Regular50MBelow->value, 'action' => 'draft', 'title' => 'X', 'amount' => 60_000_000,
+            'type' => ProjectType::Regular50MBelow->value, 'action' => 'draft', 'amount' => 60_000_000,
         ])->assertSessionHasErrors('amount');
 
         $this->actingAs($user)->post(route('projects.store'), [
-            'type' => ProjectType::RegularAbove50M->value, 'action' => 'draft', 'title' => 'X', 'amount' => 50_000_000,
+            'type' => ProjectType::RegularAbove50M->value, 'action' => 'draft', 'amount' => 50_000_000,
         ])->assertSessionHasErrors('amount');
 
         $this->actingAs($user)->post(route('projects.store'), [
-            'type' => ProjectType::Regular50MBelow->value, 'action' => 'draft', 'title' => 'X', 'amount' => 50_000_000,
+            'type' => ProjectType::Regular50MBelow->value, 'action' => 'draft', 'amount' => 50_000_000,
         ])->assertSessionHasNoErrors();
     }
 
@@ -151,7 +148,6 @@ class ProjectRequestFormTest extends TestCase
         $this->actingAs($this->lwdUser('C'))->post(route('projects.store'), [
             'type' => ProjectType::Emergency->value,
             'action' => 'submit',
-            'title' => 'Drought Response',
             'amount' => 5_000_000,
             'funding_purpose' => FundingPurpose::OperationsAndMaintenance->value,
             'documents' => $this->requiredFiles(ProjectType::Emergency, FundingPurpose::OperationsAndMaintenance),
@@ -166,7 +162,6 @@ class ProjectRequestFormTest extends TestCase
         $this->actingAs($this->lwdUser('C'))->post(route('projects.store'), [
             'type' => ProjectType::Emergency->value,
             'action' => 'submit',
-            'title' => 'Typhoon Damage',
             'amount' => 5_000_000,
             'documents' => $this->requiredFiles(ProjectType::Emergency, FundingPurpose::Capex),
         ])->assertSessionHasErrors('funding_purpose');
@@ -175,7 +170,7 @@ class ProjectRequestFormTest extends TestCase
     public function test_category_a_cannot_submit_an_emergency_request(): void
     {
         $this->actingAs($this->lwdUser('A'))->post(route('projects.store'), [
-            'type' => ProjectType::Emergency->value, 'action' => 'draft', 'title' => 'X',
+            'type' => ProjectType::Emergency->value, 'action' => 'draft',
         ])->assertForbidden();
     }
 
@@ -186,7 +181,6 @@ class ProjectRequestFormTest extends TestCase
         $this->actingAs($this->lwdUser())->post(route('projects.store'), [
             'type' => ProjectType::Regular50MBelow->value,
             'action' => 'draft',
-            'title' => 'X',
             'documents' => [$itemOne => [UploadedFile::fake()->create('photo.jpg', 100, 'image/jpeg')]],
         ])->assertSessionHasErrors("documents.{$itemOne}.0");
     }
@@ -198,7 +192,6 @@ class ProjectRequestFormTest extends TestCase
         $this->actingAs($this->lwdUser())->post(route('projects.store'), [
             'type' => ProjectType::Regular50MBelow->value,
             'action' => 'draft',
-            'title' => 'X',
             'documents' => [$emergencyItem => [$this->pdf()]],
         ])->assertSessionHasErrors('documents');
     }
@@ -217,13 +210,13 @@ class ProjectRequestFormTest extends TestCase
 
         $this->actingAs($user)->put(route('projects.update', $project), [
             'action' => 'draft',
-            'title' => 'Renamed Project',
+            'amount' => 12_345_000,
             'remove_documents' => [$old->id],
             'documents' => [$this->requirementId(ProjectType::Regular50MBelow, 2) => [$this->pdf('new.pdf')]],
         ])->assertRedirect(route('projects.edit', $project));
 
         $project->refresh();
-        $this->assertSame('Renamed Project', $project->title);
+        $this->assertSame('12345000.00', $project->amount);
         $this->assertSame(['new.pdf'], $project->documents()->pluck('original_name')->all());
         Storage::disk('local')->assertMissing($old->path);
     }
@@ -239,7 +232,6 @@ class ProjectRequestFormTest extends TestCase
 
         $this->actingAs($user)->put(route('projects.update', $project), [
             'action' => 'submit',
-            'title' => $project->title,
             'amount' => 30_000_000,
         ])->assertSessionHasNoErrors()->assertRedirect(route('dashboard', ['project' => $project->id]));
 
@@ -254,7 +246,7 @@ class ProjectRequestFormTest extends TestCase
 
         $this->actingAs($user)->get(route('projects.edit', $submitted))->assertForbidden();
         $this->actingAs($user)->get(route('projects.edit', $foreignDraft))->assertForbidden();
-        $this->actingAs($user)->put(route('projects.update', $foreignDraft), ['action' => 'draft', 'title' => 'Hijack'])->assertForbidden();
+        $this->actingAs($user)->put(route('projects.update', $foreignDraft), ['action' => 'draft'])->assertForbidden();
     }
 
     public function test_documents_are_only_visible_to_the_owner_and_lwua(): void

@@ -34,27 +34,26 @@ class DashboardTest extends TestCase
 
     public function test_lwd_only_sees_their_own_water_districts_projects(): void
     {
-        $mine = Project::factory()->for($user = $this->lwdUser())->create(['title' => 'My Pipeline Project']);
-        Project::factory()->for($this->lwdUser('A'))->create(['title' => 'Someone Else Project']);
+        $mine = Project::factory()->for($user = $this->lwdUser())->create();
+        $other = Project::factory()->for($this->lwdUser('A'))->create();
 
         $this->actingAs($user)
             ->get('/dashboard')
             ->assertOk()
             ->assertSee($mine->reference)
-            ->assertSee('My Pipeline Project')
-            ->assertDontSee('Someone Else Project');
+            ->assertDontSee($other->reference);
     }
 
     public function test_another_districts_project_cannot_be_selected(): void
     {
         $user = $this->lwdUser();
-        Project::factory()->for($user)->create(['title' => 'My Pipeline Project']);
-        $other = Project::factory()->for($this->lwdUser('A'))->create(['title' => 'Someone Else Project']);
+        Project::factory()->for($user)->create();
+        $other = Project::factory()->for($this->lwdUser('A'))->create();
 
         $this->actingAs($user)
             ->get('/dashboard?project='.$other->id)
             ->assertOk()
-            ->assertDontSee('Someone Else Project');
+            ->assertDontSee($other->reference);
     }
 
     public function test_process_flow_follows_the_selected_project(): void

@@ -49,7 +49,7 @@ class CompletenessCheckTest extends TestCase
         }
 
         $this->actingAs($this->lwd)->put(route('projects.update', $project), [
-            'action' => 'submit', 'title' => $project->title, 'amount' => 20_000_000,
+            'action' => 'submit', 'amount' => 20_000_000,
             'funding_purpose' => $purpose?->value,
         ])->assertSessionHasNoErrors();
 
@@ -183,12 +183,12 @@ class CompletenessCheckTest extends TestCase
 
         // Resubmitting without a new file for item 16 is refused.
         $this->actingAs($this->lwd)->put(route('projects.update', $project), [
-            'action' => 'submit', 'title' => $project->title, 'amount' => 20_000_000,
+            'action' => 'submit', 'amount' => 20_000_000,
         ])->assertSessionHasErrors("documents.{$item16}");
 
         // With a corrected file it goes back to WSUDD, and the return is resolved.
         $this->actingAs($this->lwd)->put(route('projects.update', $project), [
-            'action' => 'submit', 'title' => $project->title, 'amount' => 20_000_000,
+            'action' => 'submit', 'amount' => 20_000_000,
             'documents' => [$item16 => [UploadedFile::fake()->create('signed-certification.pdf', 30, 'application/pdf')]],
         ])->assertSessionHasNoErrors();
 

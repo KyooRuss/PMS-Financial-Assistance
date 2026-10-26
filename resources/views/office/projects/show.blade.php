@@ -22,7 +22,7 @@
                 <a href="{{ route('dashboard') }}" class="text-sm font-medium text-lwua-blue hover:underline">&larr; {{ __('My Queue') }}</a>
             @endif
             <div class="mt-2 flex flex-wrap items-center gap-3">
-                <h1 class="text-2xl font-bold text-lwua-navy">{{ $project->reference }} · {{ $project->title }}</h1>
+                <h1 class="text-2xl font-bold text-lwua-navy">{{ $project->reference }}</h1>
                 <span class="rounded-full px-3 py-1 text-xs font-medium {{ $project->status->badgeClasses() }}">{{ $project->status->label() }}</span>
             </div>
             <dl class="mt-3 grid gap-x-8 gap-y-2 text-sm sm:grid-cols-2 lg:grid-cols-4">

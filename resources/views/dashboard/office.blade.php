@@ -54,7 +54,6 @@
                                         @endif
                                     </td>
                                     <td class="px-6 py-4 max-w-xs">
-                                        <p class="truncate text-gray-800" title="{{ $project->title }}">{{ $project->title }}</p>
                                         @if ($project->amount)
                                             <p class="text-xs text-gray-500">₱{{ number_format($project->amount, 2) }}</p>
                                         @endif
