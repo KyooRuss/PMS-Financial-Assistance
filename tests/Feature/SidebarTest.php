@@ -56,6 +56,18 @@ class SidebarTest extends TestCase
             ->assertDontSee('Admin Portal');
     }
 
+    public function test_the_account_menu_shows_the_name_surname_first(): void
+    {
+        $user = $this->lwdUser();
+        $user->update(['first_name' => 'Juan', 'middle_name' => 'Santos', 'last_name' => 'Dela Cruz']);
+
+        $this->actingAs($user)->get('/dashboard')->assertSee('Dela Cruz, Juan Santos');
+
+        // Without a middle name there is no trailing space or dash.
+        $user->update(['middle_name' => null]);
+        $this->actingAs($user)->get('/dashboard')->assertSee('Dela Cruz, Juan</dd>', false);
+    }
+
     public function test_in_progress_filter_groups_the_active_statuses(): void
     {
         $user = $this->lwdUser();
