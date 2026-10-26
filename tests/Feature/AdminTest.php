@@ -62,7 +62,7 @@ class AdminTest extends TestCase
         $this->actingAs($this->admin)->get(route('admin.projects.index', ['q' => $project->reference]))->assertSee($project->reference);
         // The Action box is only shown to the office whose turn it is, so the admin sees no buttons.
         $this->actingAs($this->admin)->get(route('office.projects.show', $project))
-            ->assertOk()->assertSee('All Projects')->assertDontSee('Flag for return')->assertSee('Waiting on WSUDD / UDEV');
+            ->assertOk()->assertSee('All Projects')->assertDontSee('Flag for return')->assertDontSee('Complete – Endorse');
         $this->actingAs($this->admin)->post(route('office.projects.endorse', $project))->assertForbidden();
     }
 

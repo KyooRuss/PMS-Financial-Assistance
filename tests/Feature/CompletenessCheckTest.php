@@ -184,9 +184,11 @@ class CompletenessCheckTest extends TestCase
         $project = $this->submittedProject();
         $es = User::factory()->create(['role' => Role::Es]);
 
+        // The Action box is only shown to the office whose turn it is.
         $this->actingAs($es)->get(route('office.projects.show', $project))
             ->assertOk()
-            ->assertSee('Waiting on WSUDD / UDEV')
+            ->assertDontSee('Waiting on WSUDD / UDEV')
+            ->assertDontSee('Complete – Endorse')
             ->assertDontSee('Flag for return');
 
         $this->actingAs($es)->post(route('office.projects.endorse', $project))->assertForbidden();

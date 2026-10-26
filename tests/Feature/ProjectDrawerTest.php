@@ -69,7 +69,7 @@ class ProjectDrawerTest extends TestCase
             ->assertSee('1 of 14 required items uploaded')
             ->assertSee('Missing')
             ->assertSee('Not provided · optional')
-            ->assertSee('LWUA Documents')
+            ->assertDontSee('LWUA Documents')  // only LPMD, ES, BFMD, LWRD and the System Admin see these
             ->assertDontSee('>Remove<', false);  // no removing files after submission
     }
 

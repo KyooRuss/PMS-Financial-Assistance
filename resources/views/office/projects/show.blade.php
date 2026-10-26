@@ -84,6 +84,7 @@
 
             {{-- Action panel + timeline --}}
             <div class="space-y-6">
+                @if ($canAct)
                 <section class="rounded-lg bg-white p-6 shadow-md ring-1 ring-black/5">
                     <h2 class="text-lg font-semibold text-lwua-navy">{{ __('Action') }}</h2>
                     <p class="mt-1 text-sm text-gray-600">{{ __('Step :n of :total', ['n' => $project->progressStep(), 'total' => count($project->steps())]) }} · {{ $step['unit'] }} – {{ $step['action'] }}</p>
@@ -102,6 +103,7 @@
                         </p>
                     @endif
                 </section>
+                @endif
 
                 <section class="rounded-lg bg-white p-6 shadow-md ring-1 ring-black/5">
                     <h2 class="text-lg font-semibold text-lwua-navy">{{ __('Timeline') }}</h2>
