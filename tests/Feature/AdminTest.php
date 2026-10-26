@@ -54,6 +54,27 @@ class AdminTest extends TestCase
             ->assertSee('Requests submitted')->assertSee('Waiting right now')->assertSee('WSUDD / UDEV');
     }
 
+    public function test_only_the_admin_can_click_an_office_in_the_process_flow(): void
+    {
+        $this->seed(RequirementSeeder::class);
+        $user = $this->lwdUser();
+        $project = Project::factory()->for($user)->create(['status' => ProjectStatus::Submitted, 'current_step' => 2]);
+        $waitingOnEs = route('admin.projects.index', ['waiting' => Role::Es->value]);
+
+        $this->actingAs($this->admin)->get(route('office.projects.show', $project))
+            ->assertOk()
+            ->assertSee('href="'.e($waitingOnEs).'"', false)
+            ->assertSee('href="'.e(route('admin.projects.index', ['waiting' => Role::Wsudd->value])).'"', false);
+
+        // Following the link lists the requests waiting on that office.
+        $this->actingAs($this->admin)->get($waitingOnEs)->assertOk();
+
+        $this->actingAs(User::factory()->create(['role' => Role::Wsudd]))->get(route('office.projects.show', $project))
+            ->assertOk()->assertDontSee($waitingOnEs, false);
+        $this->actingAs($user)->get(route('dashboard', ['project' => $project->id]))
+            ->assertOk()->assertDontSee($waitingOnEs, false);
+    }
+
     public function test_admin_can_view_any_project_but_not_act(): void
     {
         $this->seed(RequirementSeeder::class);
