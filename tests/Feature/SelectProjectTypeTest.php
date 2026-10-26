@@ -27,7 +27,8 @@ class SelectProjectTypeTest extends TestCase
             ->assertSee('Select Project Type')
             ->assertSee(route('projects.create', ProjectType::RegularAbove50M))
             ->assertSee(route('projects.create', ProjectType::Regular50MBelow))
-            ->assertSee(route('projects.create', ProjectType::Emergency));
+            ->assertSee(route('projects.create', ProjectType::Emergency))
+            ->assertSeeInOrder(['1 – Within Threshold', '2 – Above Threshold', '3 – Emergency']);
     }
 
     public function test_emergency_is_disabled_in_the_modal_for_category_a_and_b(): void
@@ -63,8 +64,8 @@ class SelectProjectTypeTest extends TestCase
     {
         $user = $this->lwdUser('A');
 
-        $this->actingAs($user)->get(route('projects.create', ProjectType::RegularAbove50M))->assertOk()->assertSee('Annex A');
-        $this->actingAs($user)->get(route('projects.create', ProjectType::Regular50MBelow))->assertOk()->assertSee('Annex B');
+        $this->actingAs($user)->get(route('projects.create', ProjectType::RegularAbove50M))->assertOk()->assertSee('Above Threshold')->assertDontSee('Annex');
+        $this->actingAs($user)->get(route('projects.create', ProjectType::Regular50MBelow))->assertOk()->assertSee('Within Threshold')->assertDontSee('Annex');
     }
 
     public function test_unknown_type_is_not_found(): void

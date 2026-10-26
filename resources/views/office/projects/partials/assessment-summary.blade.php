@@ -4,7 +4,7 @@
     $viabilityLog = $project->logsForStep('viability_assessment')->first();
 @endphp
 
-@if ($powLog || $viabilityLog)
+@if (Auth::user()->hasRole(\App\Enums\Role::Es, \App\Enums\Role::Lwrd, \App\Enums\Role::Cpic, \App\Enums\Role::SystemAdmin))
     <section class="rounded-lg bg-white p-6 shadow-md ring-1 ring-black/5">
         <h2 class="text-lg font-semibold text-lwua-navy">{{ __('Rapid Assessments') }}</h2>
         <p class="text-xs text-gray-500">{{ __('For CPIC\'s funding and prioritization decision.') }}</p>

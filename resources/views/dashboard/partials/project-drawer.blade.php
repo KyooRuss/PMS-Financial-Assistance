@@ -33,7 +33,7 @@
                         <span class="rounded-full px-3 py-0.5 text-xs font-medium {{ $project->status->badgeClasses() }}">{{ $project->status->label() }}</span>
                     </div>
                     <p class="mt-1 text-sm italic text-gray-700">
-                        {{ $project->type->annex() }}: {{ $project->type->label() }}
+                        {{ $project->type->label() }}
                         @if ($project->funding_purpose) ({{ $project->funding_purpose->label() }}) @endif
                     </p>
                     <p class="mt-1 text-sm text-gray-500">{{ $project->title }}</p>
@@ -91,9 +91,11 @@
                 @endif
 
                 <div>
-                    <h3 class="text-sm font-semibold text-gray-900">{{ __('LWUA Documents') }}</h3>
-                    <p class="mb-3 text-xs text-gray-500">{{ __('Added by the LWUA offices as your request moves forward.') }}</p>
-                    @include('projects.partials.lwua-documents', ['requirements' => $checklists[\App\Enums\RequirementStage::LwuaUnit->value]])
+                    @if (Auth::user()->hasRole(\App\Enums\Role::Lpmd, \App\Enums\Role::Es, \App\Enums\Role::Bfmd, \App\Enums\Role::Lwrd, \App\Enums\Role::SystemAdmin))
+                        <h3 class="text-sm font-semibold text-gray-900">{{ __('LWUA Documents') }}</h3>
+                        <p class="mb-3 text-xs text-gray-500">{{ __('Added by the LWUA offices as your request moves forward.') }}</p>
+                        @include('projects.partials.lwua-documents', ['requirements' => $checklists[\App\Enums\RequirementStage::LwuaUnit->value]])
+                    @endif
                 </div>
             </div>
 

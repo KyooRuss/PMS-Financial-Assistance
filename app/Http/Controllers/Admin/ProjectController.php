@@ -29,7 +29,6 @@ class ProjectController extends Controller
         $projects = Project::query()
             ->with('waterDistrict')
             ->when($search !== '', fn ($query) => $query->where(fn ($query) => $query
-                ->where('title', 'like', "%{$search}%")
                 ->when($reference, fn ($query) => $query->orWhere('id', $reference))))
             ->when(ProjectStatus::tryFrom((string) $request->query('status')), fn ($query, $status) => $query->where('status', $status))
             ->when($request->query('status') === 'in_progress', fn ($query) => $query->whereIn('status', self::IN_PROGRESS))

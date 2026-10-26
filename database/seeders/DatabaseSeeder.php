@@ -23,10 +23,10 @@ class DatabaseSeeder extends Seeder
 
         // One sample water district per category, so both regular and emergency rules can be tested.
         $districts = collect([
-            ['name' => 'Metro Sample Water District', 'category' => 'A'],
-            ['name' => 'Riverside Water District', 'category' => 'B'],
-            ['name' => 'Hillside Water District', 'category' => 'C'],
-            ['name' => 'Coastal Water District', 'category' => 'D'],
+            ['name' => 'Bicol Water District', 'category' => 'A'],
+            ['name' => 'La Union Water District', 'category' => 'B'],
+            ['name' => 'Baguio Water District', 'category' => 'C'],
+            ['name' => 'Rizal Water District', 'category' => 'D'],
         ])->map(fn (array $district) => WaterDistrict::firstOrCreate(['name' => $district['name']], $district));
 
         // LWD accounts: lwd.a@pms.test ... lwd.d@pms.test
@@ -64,4 +64,3 @@ class DatabaseSeeder extends Seeder
         ]));
     }
 }
-    

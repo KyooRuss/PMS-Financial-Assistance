@@ -20,7 +20,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Http\UploadedFile;
 
 #[Fillable([
-    'water_district_id', 'user_id', 'type', 'funding_purpose', 'title', 'description', 'amount',
+    'water_district_id', 'user_id', 'type', 'funding_purpose', 'amount',
     'status', 'current_step', 'submitted_at', 'is_viable',
     'compliance_requested_at', 'compliance_submitted_at', 'cfp_concurred_at', 'disapproval_letter_sent_at',
 ])]

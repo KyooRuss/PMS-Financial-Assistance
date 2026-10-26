@@ -5,6 +5,12 @@
     $documentsByRequirement = $project->exists ? $project->documents->groupBy('requirement_id') : collect();
     $returns = $project->exists ? $project->returnedItems->keyBy('requirement_id') : collect(); // open returns only (see edit())
     $isReturned = $project->status === \App\Enums\ProjectStatus::Returned;
+
+    // The checklist is shown 8 items at a time; every page stays in the form, so all files are sent together.
+    $perPage = 8;
+    $pageCount = max(1, (int) ceil($requirements->count() / $perPage));
+    $firstError = $requirements->values()->search(fn ($requirement) => $errors->has("documents.{$requirement->id}") || $errors->has("documents.{$requirement->id}.*"));
+    $startPage = $firstError === false ? 1 : intdiv($firstError, $perPage) + 1;
 @endphp
 
 <x-app-layout>
@@ -17,7 +23,7 @@
             </div>
 
             <span class="rounded-full bg-white px-6 py-2 text-sm font-bold uppercase text-red-700 shadow ring-1 ring-black/10">
-                {{ $type->isEmergency() ? __('Emergency') : $type->annex() }}
+                {{ $type->shortLabel() }}
             </span>
 
             @if ($project->exists)
@@ -26,7 +32,7 @@
                 </span>
             @endif
         </div>
-        <p class="mt-2 text-sm text-gray-600">{{ $type->label() }}</p>
+        <p class="mt-2 text-sm text-gray-600">{{ $type->isEmergency() ? __('Emergency Loan') : __('Regular Loan') }}</p>
 
         @if ($isReturned && $returns->isNotEmpty())
             @php
@@ -55,6 +61,12 @@
                   purpose: @js(old('funding_purpose', $project->funding_purpose?->value)),
                   fileCount: 0,
                   maxUploads: {{ $maxUploads }},
+                  page: {{ $startPage }},
+                  pageCount: {{ $pageCount }},
+                  goTo(page) {
+                      this.page = page;
+                      this.$nextTick(() => this.$refs.requirements.scrollIntoView({ behavior: 'smooth' }));
+                  },
                   countFiles() {
                       this.fileCount = [...$el.querySelectorAll('input[type=file]:not(:disabled)')]
                           .reduce((total, input) => total + input.files.length, 0);
@@ -75,12 +87,6 @@
                 <h2 class="text-lg font-semibold text-lwua-navy">{{ __('Project Details') }}</h2>
 
                 <div class="mt-4 grid gap-5 sm:grid-cols-2">
-                    <div class="sm:col-span-2">
-                        <x-input-label for="title" :value="__('Project Title')" />
-                        <x-text-input id="title" name="title" type="text" class="mt-1 block w-full" :value="old('title', $project->title)" required maxlength="255" />
-                        <x-input-error class="mt-2" :messages="$errors->get('title')" />
-                    </div>
-
                     <div>
                         <x-input-label for="amount" :value="__('Loan Amount Requested (₱)')" />
                         <x-text-input id="amount" name="amount" type="number" step="0.01" min="0" class="mt-1 block w-full" :value="old('amount', $project->amount)" />
@@ -108,23 +114,16 @@
                             <x-input-error class="mt-2" :messages="$errors->get('funding_purpose')" />
                         </fieldset>
                     @endif
-
-                    <div class="sm:col-span-2">
-                        <x-input-label for="description" :value="__('Project Description')" />
-                        <textarea id="description" name="description" rows="3" maxlength="2000"
-                                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-lwua-blue focus:ring-lwua-blue">{{ old('description', $project->description) }}</textarea>
-                        <x-input-error class="mt-2" :messages="$errors->get('description')" />
-                    </div>
                 </div>
             </section>
 
             {{-- Documentary requirements --}}
-            <section class="rounded-lg bg-white shadow-md ring-1 ring-black/5">
+            <section x-ref="requirements" class="scroll-mt-6 rounded-lg bg-white shadow-md ring-1 ring-black/5">
                 <div class="border-b border-gray-100 px-6 py-4">
                     <h2 class="text-lg font-semibold text-lwua-navy">{{ __('Documentary Requirements') }}</h2>
                     <p class="text-xs text-gray-500">
                         {{ \App\Enums\RequirementStage::PreEvaluation->label() }} ·
-                        {{ __('PDF only, up to 10 MB per file. Select all files for an item at once.') }}
+                        {{ __('PDF only, up to 10 MB per file.') }}
                     </p>
                 </div>
 
@@ -134,10 +133,12 @@
                             $key = "documents.{$requirement->id}";
                             $existing = $documentsByRequirement->get($requirement->id, collect());
                             $return = $returns->get($requirement->id);
+                            $itemPage = intdiv($loop->index, $perPage) + 1;
                         @endphp
 
                         <li x-data="{ chosen: [] }"
-                            x-show="applies(@js($requirement->funding_purpose?->value))"
+                            x-show="page === {{ $itemPage }} && applies(@js($requirement->funding_purpose?->value))"
+                            @if ($itemPage !== $startPage) x-cloak @endif
                             @class([
                                 'px-6 py-4',
                                 'bg-red-50/60' => $errors->has($key) || $errors->has($key.'.*'),
@@ -146,8 +147,7 @@
                             <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                                 <div class="text-sm text-gray-800">
                                     <p>
-                                        <span class="font-semibold">{{ $requirement->number }}.</span>
-                                        {{ $requirement->description }}
+                                        <span class="font-semibold">{{ $requirement->number }}.</span> {{ $requirement->description }}
                                         @if ($requirement->is_optional)
                                             <span class="ml-1 rounded bg-gray-100 px-1.5 py-0.5 text-[11px] text-gray-600">{{ __('If applicable') }}</span>
                                         @endif
@@ -219,13 +219,24 @@
                         {{ __('Up to :max files can be sent at once. Save as draft first, then add the rest.', ['max' => $maxUploads]) }}
                     </p>
 
+                    <button type="button" x-show="page > 1" @if ($startPage === 1) x-cloak @endif x-on:click="goTo(page - 1)"
+                            class="rounded-md px-4 py-2.5 text-sm font-semibold uppercase text-lwua-dark hover:bg-gray-100">
+                        {{ __('Back') }}
+                    </button>
+
                     <button type="submit" name="action" value="draft" formnovalidate
                             :disabled="fileCount > maxUploads"
                             class="rounded-md border border-lwua-dark bg-white px-6 py-2.5 text-sm font-semibold uppercase text-lwua-dark shadow-sm hover:bg-gray-50 disabled:opacity-50">
                         {{ $isReturned ? __('Save Changes') : __('Save as Draft') }}
                     </button>
 
+                    <button type="button" x-show="page < pageCount" @if ($startPage === $pageCount) x-cloak @endif x-on:click="goTo(page + 1)"
+                            class="rounded-md bg-lwua-dark px-8 py-2.5 text-sm font-semibold uppercase text-white shadow hover:brightness-110">
+                        {{ __('Next') }}
+                    </button>
+
                     <button type="submit" name="action" value="submit"
+                            x-show="page === pageCount" @if ($startPage !== $pageCount) x-cloak @endif
                             :disabled="fileCount > maxUploads"
                             x-on:click="if (! confirm(@js($isReturned
                                 ? __('Resubmit this request to WSUDD with your corrections?')

@@ -27,13 +27,10 @@
             </div>
             <dl class="mt-3 grid gap-x-8 gap-y-2 text-sm sm:grid-cols-2 lg:grid-cols-4">
                 <div><dt class="text-gray-500">{{ __('Water District') }}</dt><dd class="font-medium text-gray-900">{{ $project->waterDistrict->name }} ({{ __('Category :c', ['c' => $project->waterDistrict->category]) }})</dd></div>
-                <div><dt class="text-gray-500">{{ __('Project Type') }}</dt><dd class="font-medium text-gray-900">{{ $project->type->label() }} @if ($project->funding_purpose) ({{ $project->funding_purpose->label() }}) @endif · {{ $project->type->annex() }}</dd></div>
+                <div><dt class="text-gray-500">{{ __('Project Type') }}</dt><dd class="font-medium text-gray-900">{{ $project->type->label() }} @if ($project->funding_purpose) ({{ $project->funding_purpose->label() }}) @endif</dd></div>
                 <div><dt class="text-gray-500">{{ __('Amount Requested') }}</dt><dd class="font-medium text-gray-900 tabular-nums">{{ $project->amount ? '₱'.number_format($project->amount, 2) : '—' }}</dd></div>
                 <div><dt class="text-gray-500">{{ __('Submitted') }}</dt><dd class="font-medium text-gray-900">{{ $project->submitted_at?->format('M j, Y') ?? '—' }} · {{ $project->user->full_name }}</dd></div>
             </dl>
-            @if ($project->description)
-                <p class="mt-3 max-w-3xl text-sm text-gray-600">{{ $project->description }}</p>
-            @endif
         </div>
 
         <x-process-flow :project="$project" />
@@ -76,11 +73,13 @@
                     @include('projects.partials.checklist', ['requirements' => $submission, 'flaggable' => ($flagging['stage'] ?? null) === 'submission'])
                 </section>
 
-                <section class="rounded-lg bg-white p-6 shadow-md ring-1 ring-black/5">
-                    <h2 class="text-lg font-semibold text-lwua-navy">{{ __('LWUA Documents') }}</h2>
-                    <p class="mb-3 text-xs text-gray-500">{{ \App\Enums\RequirementStage::LwuaUnit->label() }}</p>
-                    @include('projects.partials.lwua-documents', ['requirements' => $lwuaDocuments])
-                </section>
+                @if (Auth::user()->hasRole(\App\Enums\Role::Lpmd, \App\Enums\Role::Es, \App\Enums\Role::Bfmd, \App\Enums\Role::Lwrd, \App\Enums\Role::SystemAdmin))
+                    <section class="rounded-lg bg-white p-6 shadow-md ring-1 ring-black/5">
+                        <h2 class="text-lg font-semibold text-lwua-navy">{{ __('LWUA Documents') }}</h2>
+                        <p class="mb-3 text-xs text-gray-500">{{ \App\Enums\RequirementStage::LwuaUnit->label() }}</p>
+                        @include('projects.partials.lwua-documents', ['requirements' => $lwuaDocuments])
+                    </section>
+                @endif
             </div>
 
             {{-- Action panel + timeline --}}

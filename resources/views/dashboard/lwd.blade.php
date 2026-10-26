@@ -30,6 +30,16 @@
                     </div>
                 @endif
             </div>
+
+        {{-- View Legend --}}
+            <div class="mt-3 mr-2 text-right">
+                <button type="button" 
+                    x-data
+                    x-on:click="$dispatch('open-modal', 'view-acronyms-modal')"
+                    class="text-xs font-semibold tracking-wide text-lwua-sky underline hover:brightness-110">
+                    {{ __('View Acronyms') }}
+                </button>
+            </div>  
         </section>
 
         {{-- Projects --}}
@@ -52,13 +62,13 @@
                     <table class="min-w-full text-sm">
                         <thead class="border-b border-gray-200 text-xs font-semibold text-gray-700">
                             <tr>
-                                <th scope="col" class="px-6 py-4 text-left">{{ __('Project ID') }}</th>
-                                <th scope="col" class="px-6 py-4 text-left">{{ __('Project Type') }}</th>
-                                <th scope="col" class="px-6 py-4 text-left">{{ __('Details') }}</th>
+                                <th scope="col" class="px-6 py-4 text-center">{{ __('Project ID') }}</th>
+                                <th scope="col" class="px-6 py-4 text-center">{{ __('Project Type') }}</th>
+                                <th scope="col" class="px-6 py-4 text-center">{{ __('Details') }}</th>
                                 <th scope="col" class="px-6 py-4 text-center">{{ __('Status') }}</th>
                                 <th scope="col" class="px-6 py-4 text-center">{{ __('Date Submitted') }}</th>
                                 <th scope="col" class="px-6 py-4 text-center">{{ __('Progress') }}</th>
-                                <th scope="col" class="px-6 py-4"><span class="sr-only">{{ __('Actions') }}</span></th>
+                                <th scope="col" class="px-6 py-4 text-center">{{ __('Action') }}</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100">
@@ -68,17 +78,16 @@
 
                                 <tr @class(['cursor-pointer hover:bg-gray-50', 'bg-blue-50/60' => $isSelected])
                                     x-data x-on:click="window.location = @js($url)">
-                                    <td class="px-6 py-4 whitespace-nowrap">
+                                    <td class="px-6 py-4 text-center whitespace-nowrap">
                                         <a href="{{ $url }}" class="font-bold text-lwua-navy hover:underline">{{ $project->reference }}</a>
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap uppercase text-gray-800">
+                                    <td class="px-6 py-4 text-center whitespace-nowrap uppercase text-gray-800">
                                         {{ $project->type->shortLabel() }}
                                         @if ($project->funding_purpose)
                                             <span class="block text-[11px] normal-case text-gray-500">{{ $project->funding_purpose->label() }}</span>
                                         @endif
                                     </td>
-                                    <td class="px-6 py-4 max-w-xs">
-                                        <p class="truncate text-gray-800" title="{{ $project->title }}">{{ $project->title }}</p>
+                                    <td class="px-6 py-4 max-w-xs text-center">
                                         @if ($project->amount)
                                             <p class="text-xs text-gray-500">₱{{ number_format($project->amount, 2) }}</p>
                                         @endif
@@ -92,7 +101,7 @@
                                     <td class="px-6 py-4 text-center whitespace-nowrap text-gray-800">
                                         {{ __('Step :current out of :total', ['current' => $project->progressStep(), 'total' => count($project->steps())]) }}
                                     </td>
-                                    <td class="px-6 py-4 text-right whitespace-nowrap">
+                                    <td class="px-6 py-4 text-center whitespace-nowrap">
                                         @if ($project->isEditable())
                                             @if ($project->status === \App\Enums\ProjectStatus::Returned)
                                                 <a href="{{ route('projects.edit', $project) }}" x-on:click.stop
@@ -131,8 +140,11 @@
             </div>
         </section>
     </div>
-
+   
     @if ($drawer)
         @include('dashboard.partials.project-drawer')
     @endif
+      @include('dashboard.partials.view-acronyms-modal')
+    
+
 </x-app-layout>

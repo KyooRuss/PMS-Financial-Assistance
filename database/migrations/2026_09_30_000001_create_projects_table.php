@@ -17,8 +17,6 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->cascadeOnDelete(); // who filed the request
             $table->string('type');
             $table->string('funding_purpose')->nullable(); // emergency only: capex / om
-            $table->string('title');
-            $table->text('description')->nullable();
             $table->decimal('amount', 15, 2)->nullable();
             $table->string('status')->default('draft');
             $table->unsignedTinyInteger('current_step')->default(1);

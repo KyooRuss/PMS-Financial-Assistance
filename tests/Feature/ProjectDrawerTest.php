@@ -63,7 +63,8 @@ class ProjectDrawerTest extends TestCase
         $this->actingAs($user)
             ->get(route('dashboard', ['project' => $project->id, 'drawer' => 'files']))
             ->assertOk()
-            ->assertSee('Annex B: Regular Loan – ₱50M and Below')  // the Figma said "Annex A" here
+            ->assertSee('Regular Loan – Within Threshold')
+            ->assertDontSee('Annex')
             ->assertSee('board-resolution.pdf')
             ->assertSee('1 of 14 required items uploaded')
             ->assertSee('Missing')

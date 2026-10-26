@@ -13,7 +13,7 @@
             <div>
                 <h1 class="text-2xl font-bold text-lwua-navy">{{ __('Post-Evaluation Documents') }}</h1>
                 <p class="mt-1 text-sm text-gray-500">
-                    <span class="font-semibold text-lwua-navy">{{ $project->reference }}</span> · {{ $project->title }} · {{ $project->type->label() }}
+                    <span class="font-semibold text-lwua-navy">{{ $project->reference }}</span> · {{ $project->type->label() }}
                 </p>
             </div>
             <span class="rounded-full px-3 py-1 text-xs font-medium {{ $project->status->badgeClasses() }}">{{ $project->status->label() }}</span>

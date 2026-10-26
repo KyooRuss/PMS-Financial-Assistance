@@ -58,12 +58,13 @@ class ProjectRequestFormTest extends TestCase
         return Requirement::checklist($type, RequirementStage::PreEvaluation)->where('number', $number)->value('id');
     }
 
-    public function test_form_shows_the_annex_checklist(): void
+    public function test_form_shows_the_checklist(): void
     {
         $this->actingAs($this->lwdUser())
             ->get(route('projects.create', ProjectType::Regular50MBelow))
             ->assertOk()
-            ->assertSee('Annex B')
+            ->assertSee('Within Threshold')
+            ->assertSeeInOrder(['Back', 'Save as Draft', 'Next', 'Submit'])
             ->assertSee('Board Resolution requesting Financial Assistance.')
             ->assertSee("2 previous years' MDS")
             ->assertSee('Certification of water source')

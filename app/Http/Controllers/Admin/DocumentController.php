@@ -30,8 +30,8 @@ class DocumentController extends Controller
         $documents = ProjectDocument::query()
             ->with(['project.waterDistrict', 'requirement', 'uploader'])
             ->when($search !== '', fn (Builder $query) => $query->where(fn (Builder $query) => $query
-                ->where('original_name', 'like', "%{$search}%")
-                ->orWhereHas('project', fn (Builder $project) => $project->where('title', 'like', "%{$search}%"))))
+                ->orWhere('original_name', 'like', "%{$search}%")
+            ))
             ->when($kind === 'submission', fn (Builder $query) => $query->whereHas('requirement', fn (Builder $requirement) => $requirement
                 ->whereIn('stage', [RequirementStage::PreEvaluation, RequirementStage::PostEvaluation])))
             ->when($kind === 'lwua', fn (Builder $query) => $query->where('internal', false)->where(fn (Builder $query) => $query

@@ -4,40 +4,29 @@ namespace App\Enums;
 
 enum ProjectType: string
 {
-    case RegularAbove50M = 'regular_above_50m';
+    // In the order shown on the "Select Project Type" modal (1, 2, 3).
     case Regular50MBelow = 'regular_50m_below';
+    case RegularAbove50M = 'regular_above_50m';
     case Emergency = 'emergency';
 
     public function label(): string
     {
         return match ($this) {
-            self::RegularAbove50M => 'Regular Loan – Above ₱50M',
-            self::Regular50MBelow => 'Regular Loan – ₱50M and Below',
+            self::Regular50MBelow => 'Regular Loan – Within Threshold',
+            self::RegularAbove50M => 'Regular Loan – Above Threshold',
             self::Emergency => 'Emergency Loan',
         };
     }
 
     /**
-     * Compact label for tables.
+     * Compact label for tables and the "Select Project Type" modal.
      */
     public function shortLabel(): string
     {
         return match ($this) {
-            self::RegularAbove50M => 'Above ₱50M',
-            self::Regular50MBelow => '₱50M and Below',
-            self::Emergency => 'Emergency Loan',
-        };
-    }
-
-    /**
-     * The annex the requirement checklist comes from.
-     */
-    public function annex(): string
-    {
-        return match ($this) {
-            self::RegularAbove50M => 'Annex A',
-            self::Regular50MBelow => 'Annex B',
-            self::Emergency => 'Annex A (Emergency)',
+            self::Regular50MBelow => 'Within Threshold',
+            self::RegularAbove50M => 'Above Threshold',
+            self::Emergency => 'Emergency',
         };
     }
 

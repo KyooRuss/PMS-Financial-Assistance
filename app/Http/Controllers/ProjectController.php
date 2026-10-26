@@ -41,7 +41,7 @@ class ProjectController extends Controller
 
         $project = DB::transaction(function () use ($request, $user) {
             $project = Project::create([
-                ...$request->safe()->only(['title', 'description', 'amount', 'funding_purpose']),
+                ...$request->safe()->only(['amount', 'funding_purpose']),
                 'type' => $request->projectType(),
                 'water_district_id' => $user->water_district_id,
                 'user_id' => $user->id,
@@ -68,7 +68,7 @@ class ProjectController extends Controller
     public function update(SaveProjectRequest $request, Project $project): RedirectResponse
     {
         DB::transaction(function () use ($request, $project) {
-            $project->update($request->safe()->only(['title', 'description', 'amount', 'funding_purpose']));
+            $project->update($request->safe()->only(['amount', 'funding_purpose']));
 
             $project->documents()
                 ->whereIn('id', $request->input('remove_documents', []))

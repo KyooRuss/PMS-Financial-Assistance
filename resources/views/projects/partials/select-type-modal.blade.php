@@ -14,7 +14,7 @@
                     <a href="{{ route('projects.create', $type) }}"
                        class="w-64 rounded-md bg-lwua-dark px-4 py-3 text-white shadow hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-lwua-sky focus:ring-offset-2">
                         <span class="block text-sm font-bold uppercase">{{ $number }} – {{ $type->shortLabel() }}</span>
-                        <span class="block text-[11px] text-white/75">{{ $type->isEmergency() ? __('Category C & D only') : __('Regular Loan') }} · {{ $type->annex() }}</span>
+                        <span class="block text-[11px] text-white/75">{{ $type->isEmergency() ? __('Category C & D only') : __('Regular Loan') }}</span>
                     </a>
                 @else
                     <div class="w-64 cursor-not-allowed rounded-md bg-gray-200 px-4 py-3 text-gray-500" aria-disabled="true">

@@ -69,31 +69,32 @@ class SampleProjectSeeder extends Seeder
 
         $samples = [
             // lwd.a – Category A (regular loans only)
-            [$categoryA, ['type' => ProjectType::RegularAbove50M, 'title' => 'Bulk Water Supply Expansion', 'amount' => 120_000_000, 'status' => ProjectStatus::Draft, 'current_step' => 1, 'submitted_at' => null]],
-            [$categoryA, ['type' => ProjectType::Regular50MBelow, 'title' => 'Pipeline Rehabilitation – Poblacion', 'amount' => 35_000_000, 'status' => ProjectStatus::UnderEvaluation, 'current_step' => 5, 'is_viable' => true, 'submitted_at' => '2026-09-01 09:00']],
-            [$categoryA, ['type' => ProjectType::RegularAbove50M, 'title' => 'Pipe Network Expansion – Zone 3', 'amount' => 75_000_000, 'status' => ProjectStatus::UnderEvaluation, 'current_step' => 7, 'is_viable' => true, 'submitted_at' => '2026-08-03 09:00']],
-            [$categoryA, ['type' => ProjectType::Regular50MBelow, 'title' => 'Water Meter Replacement Program', 'amount' => 12_000_000, 'status' => ProjectStatus::Submitted, 'current_step' => 2, 'submitted_at' => '2026-09-28 10:30']],
-            [$categoryA, ['type' => ProjectType::Regular50MBelow, 'title' => 'Booster Pump Station – Brgy. Malinis', 'amount' => 28_000_000, 'status' => ProjectStatus::UnderEvaluation, 'current_step' => 9, 'is_viable' => true, 'compliance_submitted_at' => '2026-09-25 14:00', 'submitted_at' => '2026-06-02 09:00']],
-            [$categoryA, ['type' => ProjectType::RegularAbove50M, 'title' => 'Treatment Plant Upgrade', 'amount' => 95_000_000, 'status' => ProjectStatus::UnderEvaluation, 'current_step' => 11, 'is_viable' => true, 'submitted_at' => '2026-04-14 09:00']],
-            [$categoryA, ['type' => ProjectType::RegularAbove50M, 'title' => 'Elevated Steel Tank – 500 m³', 'amount' => 62_000_000, 'status' => ProjectStatus::Approved, 'current_step' => 13, 'is_viable' => true, 'submitted_at' => '2026-03-02 09:00']],
-            [$categoryA, ['type' => ProjectType::Regular50MBelow, 'title' => 'Chlorination Facilities', 'amount' => 8_500_000, 'status' => ProjectStatus::Approved, 'current_step' => 15, 'is_viable' => true, 'submitted_at' => '2026-01-12 09:00']],
-            [$categoryA, ['type' => ProjectType::Regular50MBelow, 'title' => 'Office Building and Warehouse', 'amount' => 15_000_000, 'status' => ProjectStatus::Completed, 'current_step' => 15, 'is_viable' => true, 'submitted_at' => '2025-10-06 09:00']],
+            [$categoryA, ['type' => ProjectType::RegularAbove50M, 'amount' => 120_000_000, 'status' => ProjectStatus::Draft, 'current_step' => 1, 'submitted_at' => null]],
+            [$categoryA, ['type' => ProjectType::Regular50MBelow, 'amount' => 35_000_000, 'status' => ProjectStatus::UnderEvaluation, 'current_step' => 5, 'is_viable' => true, 'submitted_at' => '2026-09-01 09:00']],
+            [$categoryA, ['type' => ProjectType::RegularAbove50M, 'amount' => 75_000_000, 'status' => ProjectStatus::UnderEvaluation, 'current_step' => 7, 'is_viable' => true, 'submitted_at' => '2026-08-03 09:00']],
+            [$categoryA, ['type' => ProjectType::Regular50MBelow, 'amount' => 12_000_000, 'status' => ProjectStatus::Submitted, 'current_step' => 2, 'submitted_at' => '2026-09-28 10:30']],
+            [$categoryA, ['type' => ProjectType::Regular50MBelow, 'amount' => 28_000_000, 'status' => ProjectStatus::UnderEvaluation, 'current_step' => 9, 'is_viable' => true, 'compliance_submitted_at' => '2026-09-25 14:00', 'submitted_at' => '2026-06-02 09:00']],
+            [$categoryA, ['type' => ProjectType::RegularAbove50M, 'amount' => 95_000_000, 'status' => ProjectStatus::UnderEvaluation, 'current_step' => 11, 'is_viable' => true, 'submitted_at' => '2026-04-14 09:00']],
+            [$categoryA, ['type' => ProjectType::RegularAbove50M, 'amount' => 62_000_000, 'status' => ProjectStatus::Approved, 'current_step' => 13, 'is_viable' => true, 'submitted_at' => '2026-03-02 09:00']],
+            [$categoryA, ['type' => ProjectType::Regular50MBelow, 'amount' => 8_500_000, 'status' => ProjectStatus::Approved, 'current_step' => 15, 'is_viable' => true, 'submitted_at' => '2026-01-12 09:00']],
+            [$categoryA, ['type' => ProjectType::Regular50MBelow, 'amount' => 15_000_000, 'status' => ProjectStatus::Completed, 'current_step' => 15, 'is_viable' => true, 'submitted_at' => '2025-10-06 09:00']],
 
             // lwd.c – Category C (can also request emergency loans)
-            [$categoryC, ['type' => ProjectType::Emergency, 'funding_purpose' => FundingPurpose::Capex, 'title' => 'Typhoon Damage – Intake Rehabilitation', 'amount' => 18_000_000, 'status' => ProjectStatus::Completed, 'current_step' => 13, 'submitted_at' => '2026-02-01 09:00']],
-            [$categoryC, ['type' => ProjectType::Regular50MBelow, 'title' => 'New Production Well', 'amount' => 22_500_000, 'status' => ProjectStatus::Returned, 'current_step' => 2, 'submitted_at' => '2026-08-15 09:00']],
-            [$categoryC, ['type' => ProjectType::Emergency, 'funding_purpose' => FundingPurpose::OperationsAndMaintenance, 'title' => 'Drought Response – Operating Costs', 'amount' => 6_000_000, 'status' => ProjectStatus::ForCompliance, 'current_step' => 4, 'submitted_at' => '2026-07-20 09:00']],
-            [$categoryC, ['type' => ProjectType::Regular50MBelow, 'title' => 'Reservoir Construction – Brgy. San Isidro', 'amount' => 48_000_000, 'status' => ProjectStatus::NotPrioritized, 'current_step' => 5, 'is_viable' => false, 'submitted_at' => '2026-05-10 09:00']],
-            [$categoryC, ['type' => ProjectType::Regular50MBelow, 'title' => 'Septage Management Facility', 'amount' => 40_000_000, 'status' => ProjectStatus::UnderEvaluation, 'current_step' => 10, 'is_viable' => true, 'submitted_at' => '2026-05-20 09:00']],
-            [$categoryC, ['type' => ProjectType::Regular50MBelow, 'title' => 'Distribution Line Extension – Sitio Proper', 'amount' => 19_000_000, 'status' => ProjectStatus::UnderEvaluation, 'current_step' => 12, 'is_viable' => true, 'submitted_at' => '2026-03-16 09:00']],
-            [$categoryC, ['type' => ProjectType::Regular50MBelow, 'title' => 'Spring Box Development', 'amount' => 6_500_000, 'status' => ProjectStatus::Approved, 'current_step' => 14, 'is_viable' => true, 'submitted_at' => '2026-02-23 09:00']],
-            [$categoryC, ['type' => ProjectType::Regular50MBelow, 'title' => 'Transmission Line Replacement', 'amount' => 45_000_000, 'status' => ProjectStatus::Disapproved, 'current_step' => 12, 'is_viable' => false, 'submitted_at' => '2026-03-09 09:00']],
+            [$categoryC, ['type' => ProjectType::Emergency, 'funding_purpose' => FundingPurpose::Capex, 'amount' => 18_000_000, 'status' => ProjectStatus::Completed, 'current_step' => 13, 'submitted_at' => '2026-02-01 09:00']],
+            [$categoryC, ['type' => ProjectType::Regular50MBelow, 'amount' => 22_500_000, 'status' => ProjectStatus::Returned, 'current_step' => 2, 'submitted_at' => '2026-08-15 09:00']],
+            [$categoryC, ['type' => ProjectType::Emergency, 'funding_purpose' => FundingPurpose::OperationsAndMaintenance, 'amount' => 6_000_000, 'status' => ProjectStatus::ForCompliance, 'current_step' => 4, 'submitted_at' => '2026-07-20 09:00']],
+            [$categoryC, ['type' => ProjectType::Regular50MBelow, 'amount' => 48_000_000, 'status' => ProjectStatus::NotPrioritized, 'current_step' => 5, 'is_viable' => false, 'submitted_at' => '2026-05-10 09:00']],
+            [$categoryC, ['type' => ProjectType::Regular50MBelow, 'amount' => 40_000_000, 'status' => ProjectStatus::UnderEvaluation, 'current_step' => 10, 'is_viable' => true, 'submitted_at' => '2026-05-20 09:00']],
+            [$categoryC, ['type' => ProjectType::Regular50MBelow, 'amount' => 19_000_000, 'status' => ProjectStatus::UnderEvaluation, 'current_step' => 12, 'is_viable' => true, 'submitted_at' => '2026-03-16 09:00']],
+            [$categoryC, ['type' => ProjectType::Regular50MBelow, 'amount' => 6_500_000, 'status' => ProjectStatus::Approved, 'current_step' => 14, 'is_viable' => true, 'submitted_at' => '2026-02-23 09:00']],
+            [$categoryC, ['type' => ProjectType::Regular50MBelow, 'amount' => 45_000_000, 'status' => ProjectStatus::Disapproved, 'current_step' => 12, 'is_viable' => false, 'submitted_at' => '2026-03-09 09:00']],
         ];
 
         foreach ($samples as [$user, $attributes]) {
+            // Each sample has its own amount, so re-seeding finds it instead of adding a copy.
             $project = Project::firstOrCreate(
-                ['water_district_id' => $user->water_district_id, 'title' => $attributes['title']],
-                [...$attributes, 'user_id' => $user->id, 'description' => 'Sample project for testing the dashboard.'],
+                ['water_district_id' => $user->water_district_id, 'amount' => $attributes['amount']],
+                [...$attributes, 'user_id' => $user->id],
             );
 
             if (! $project->wasRecentlyCreated) {

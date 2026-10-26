@@ -13,9 +13,6 @@ use Illuminate\Validation\Validator;
 
 /**
  * Saves the Request a Project form, either as a draft or as a final submission.
- *
- * - Draft: only the title is required, so the LWD can upload in batches.
- * - Submit: project details are required and every applicable, non-optional requirement needs a file.
  */
 class SaveProjectRequest extends FormRequest
 {
@@ -53,7 +50,6 @@ class SaveProjectRequest extends FormRequest
         return [
             'type' => [$this->project() ? 'prohibited' : 'required', Rule::enum(ProjectType::class)],
             'action' => ['required', Rule::in(['draft', 'submit'])],
-            'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:2000'],
             'amount' => $amount,
             'funding_purpose' => $type?->isEmergency()
@@ -133,9 +129,9 @@ class SaveProjectRequest extends FormRequest
     {
         return [
             'amount.gt' => $this->projectType() === ProjectType::RegularAbove50M
-                ? __('Above ₱50M requests must be more than ₱50,000,000.')
+                ? __('Above Threshold requests must be more than ₱50,000,000.')
                 : __('The amount must be more than zero.'),
-            'amount.lte' => __('₱50M and Below requests must not exceed ₱50,000,000. Choose "Above ₱50M" instead.'),
+            'amount.lte' => __('Within Threshold requests must not exceed ₱50,000,000. Choose "Above Threshold" instead.'),
             'documents.*.*.mimes' => __('Only PDF files are accepted.'),
             'documents.*.*.max' => __('Each file must be 10 MB or smaller.'),
             'funding_purpose.required' => __('Choose whether this emergency loan is for CAPEX or O&M.'),
