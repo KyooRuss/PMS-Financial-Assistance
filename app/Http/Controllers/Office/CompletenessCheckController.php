@@ -22,7 +22,14 @@ class CompletenessCheckController extends Controller
         Gate::authorize('act', $project);
         abort_unless($project->isAt('completeness'), 403);
 
-        $validated = $request->validate(['remarks' => ['nullable', 'string', 'max:2000']]);
+        // Any amount is allowed; a regular loan's type follows it (see ProjectWorkflow::endorse()).
+        $validated = $request->validate([
+            'amount' => ['required', 'numeric', 'gt:0', 'max:9999999999999.99'],
+            'remarks' => ['nullable', 'string', 'max:2000'],
+        ], [
+            'amount.required' => __('Assign the loan amount for this request.'),
+            'amount.gt' => __('The loan amount must be more than zero.'),
+        ]);
 
         $missing = $project->submissionRequirements()
             ->reject->is_optional
@@ -34,7 +41,7 @@ class CompletenessCheckController extends Controller
             ]));
         }
 
-        $this->workflow->endorse($project, $request->user(), $validated['remarks'] ?? null);
+        $this->workflow->endorse($project, $request->user(), (string) $validated['amount'], $validated['remarks'] ?? null);
 
         return redirect()->route('dashboard')
             ->with('success', __(':ref endorsed. It is now with :unit.', ['ref' => $project->reference, 'unit' => $project->currentStep()['unit']]));

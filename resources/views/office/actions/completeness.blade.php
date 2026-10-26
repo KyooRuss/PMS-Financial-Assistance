@@ -1,5 +1,16 @@
-{{-- WSUDD – completeness check. Rendered inside the page-wide #action-form (the checklist flags are part of it). --}}
+{{--
+    WSUDD – completeness check. Rendered inside the page-wide #action-form (the checklist flags are part of it).
+    The amount box is not marked "required" because the Return button submits this same form; endorse() checks it.
+--}}
 <p class="mt-3 text-sm text-gray-700">{{ __('Open every file. If everything is complete, endorse the request. Otherwise flag the items to fix on the left and return it to the water district.') }}</p>
+
+<div class="mt-4">
+    <x-input-label for="amount" :value="__('Assign a New Loan Amount (₱)')" />
+    <x-text-input id="amount" name="amount" type="number" step="0.01" min="0" class="mt-1 block w-full tabular-nums"
+                  :value="old('amount', $project->amount)" />
+    <p class="mt-1 text-xs text-gray-500">{{ __('This amount replaces the requested one.') }}</p>
+    <x-input-error class="mt-1" :messages="$errors->get('amount')" />
+</div>
 
 <div class="mt-4">
     <x-input-label for="remarks" :value="__('Remarks (optional)')" />

@@ -92,7 +92,91 @@ class CompletenessCheckTest extends TestCase
             ->assertSee('Submitted Requirements')
             ->assertSee('Flag for return')
             ->assertSee('Complete – Endorse')
-            ->assertSee('Return to Water District');
+            ->assertSee('Return to Water District')
+            ->assertSee('Assign a New Loan Amount')
+            ->assertSee('This amount replaces the requested one.');
+    }
+
+    public function test_the_amount_wsudd_assigns_replaces_the_requested_amount(): void
+    {
+        $project = $this->submittedProject();
+
+        $this->actingAs($this->wsudd)->post(route('office.projects.endorse', $project), ['amount' => 18_500_000])
+            ->assertSessionHasNoErrors();
+
+        $project->refresh();
+        $this->assertSame('18500000.00', $project->amount);
+        $this->assertSame(Role::Es, $project->current_role);
+        $this->assertStringContainsString('Assigned a new loan amount of ₱18,500,000.00 (requested: ₱20,000,000.00)', $project->logs()->first()->action);
+    }
+
+    public function test_keeping_the_requested_amount_adds_no_note_to_the_timeline(): void
+    {
+        $project = $this->submittedProject();
+
+        $this->actingAs($this->wsudd)->post(route('office.projects.endorse', $project), ['amount' => 20_000_000]);
+
+        $this->assertSame('20000000.00', $project->fresh()->amount);
+        $this->assertStringNotContainsString('Assigned a new loan amount', $project->logs()->first()->action);
+    }
+
+    public function test_assigning_above_the_threshold_makes_the_request_above_threshold(): void
+    {
+        $project = $this->submittedProject();
+        $documents = $project->documents()->count();
+
+        $this->actingAs($this->wsudd)->post(route('office.projects.endorse', $project), ['amount' => 60_000_000])
+            ->assertSessionHasNoErrors();
+
+        $project->refresh();
+        $this->assertSame(ProjectType::RegularAbove50M, $project->type);
+        $this->assertSame('60000000.00', $project->amount);
+        $this->assertSame(Role::Es, $project->current_role);
+        $this->assertStringContainsString('Changed the project type from Within Threshold to Above Threshold', $project->logs()->first()->action);
+
+        // Every uploaded file now belongs to the Above Threshold checklist, so nothing shows as missing.
+        $this->assertSame($documents, $project->documents()->whereIn('requirement_id', Requirement::where('project_type', ProjectType::RegularAbove50M)->pluck('id'))->count());
+        $this->assertSame(0, $project->submissionRequirements()->reject->is_optional
+            ->reject(fn ($requirement) => $project->documents()->where('requirement_id', $requirement->id)->exists())->count());
+    }
+
+    public function test_assigning_within_the_threshold_makes_the_request_within_threshold(): void
+    {
+        $project = $this->submittedProject();
+        $project->update(['type' => ProjectType::RegularAbove50M]);
+        $project->documents()->delete();
+        foreach ($project->submissionRequirements()->reject->is_optional as $requirement) {
+            $this->upload($project, $requirement->number);
+        }
+
+        $this->actingAs($this->wsudd)->post(route('office.projects.endorse', $project), ['amount' => 50_000_000]);
+
+        $this->assertSame(ProjectType::Regular50MBelow, $project->fresh()->type);
+    }
+
+    public function test_an_emergency_loan_keeps_its_type_at_any_amount(): void
+    {
+        $project = $this->submittedProject(ProjectType::Emergency, FundingPurpose::Capex);
+
+        $this->actingAs($this->wsudd)->post(route('office.projects.endorse', $project), ['amount' => 75_000_000])
+            ->assertSessionHasNoErrors();
+
+        $this->assertSame(ProjectType::Emergency, $project->fresh()->type);
+    }
+
+    public function test_endorsing_needs_an_amount(): void
+    {
+        $project = $this->submittedProject();
+
+        $this->actingAs($this->wsudd)->post(route('office.projects.endorse', $project), ['amount' => ''])
+            ->assertSessionHasErrors(['amount' => 'Assign the loan amount for this request.']);
+
+        $this->actingAs($this->wsudd)->post(route('office.projects.endorse', $project), ['amount' => 0])
+            ->assertSessionHasErrors(['amount' => 'The loan amount must be more than zero.']);
+
+        $project->refresh();
+        $this->assertSame(ProjectStatus::Submitted, $project->status);
+        $this->assertSame('20000000.00', $project->amount);
     }
 
     public function test_other_offices_can_view_but_not_act(): void
@@ -113,7 +197,7 @@ class CompletenessCheckTest extends TestCase
     {
         $project = $this->submittedProject();
 
-        $this->actingAs($this->wsudd)->post(route('office.projects.endorse', $project), ['remarks' => 'All complete.'])
+        $this->actingAs($this->wsudd)->post(route('office.projects.endorse', $project), ['amount' => 20_000_000, 'remarks' => 'All complete.'])
             ->assertRedirect(route('dashboard'));
 
         $project->refresh();
@@ -127,7 +211,7 @@ class CompletenessCheckTest extends TestCase
     {
         $project = $this->submittedProject(ProjectType::Emergency, FundingPurpose::Capex);
 
-        $this->actingAs($this->wsudd)->post(route('office.projects.endorse', $project));
+        $this->actingAs($this->wsudd)->post(route('office.projects.endorse', $project), ['amount' => 20_000_000]);
 
         $project->refresh();
         $this->assertSame(3, $project->current_step);
@@ -139,7 +223,7 @@ class CompletenessCheckTest extends TestCase
         $project = $this->submittedProject();
         $project->documents()->where('requirement_id', $this->requirementId($project, 16))->delete();
 
-        $this->actingAs($this->wsudd)->post(route('office.projects.endorse', $project))
+        $this->actingAs($this->wsudd)->post(route('office.projects.endorse', $project), ['amount' => 20_000_000])
             ->assertSessionHas('error');
 
         $this->assertSame(ProjectStatus::Submitted, $project->fresh()->status);
@@ -200,14 +284,14 @@ class CompletenessCheckTest extends TestCase
 
         // WSUDD sees the resubmission and endorses it.
         $this->actingAs($this->wsudd)->get('/dashboard')->assertSee('Resubmitted after a return');
-        $this->actingAs($this->wsudd)->post(route('office.projects.endorse', $project));
+        $this->actingAs($this->wsudd)->post(route('office.projects.endorse', $project), ['amount' => 20_000_000]);
         $this->assertSame(ProjectStatus::UnderEvaluation, $project->fresh()->status);
     }
 
     public function test_handled_tab_lists_projects_the_office_acted_on(): void
     {
         $project = $this->submittedProject();
-        $this->actingAs($this->wsudd)->post(route('office.projects.endorse', $project));
+        $this->actingAs($this->wsudd)->post(route('office.projects.endorse', $project), ['amount' => 20_000_000]);
 
         $this->actingAs($this->wsudd)->get(route('dashboard', ['tab' => 'handled']))
             ->assertOk()->assertSee($project->reference)->assertSee('Under Evaluation');

@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Enums\ProjectStatus;
+use App\Enums\ProjectType;
 use App\Enums\RequirementStage;
 use App\Models\Project;
 use App\Models\ProjectLog;
@@ -18,14 +19,56 @@ class ProjectWorkflow
 {
     /**
      * WSUDD found the submission complete and passes it on (regular: to ES and LWRD; emergency: to CPIC).
+     * WSUDD also confirms the loan amount; the one it assigns replaces the amount the water district requested,
+     * and a regular loan moves to Within or Above Threshold to match it.
      */
-    public function endorse(Project $project, User $user, ?string $remarks = null): void
+    public function endorse(Project $project, User $user, string $amount, ?string $remarks = null): void
     {
-        $action = $project->type->isEmergency()
-            ? __('Endorsed to CPIC with complete requirements')
-            : __('Found the requirements complete. Endorsed items 1–11 to LWRD and items 12–16 with the WD-POW to ES');
+        DB::transaction(function () use ($project, $user, $amount, $remarks) {
+            $action = $project->type->isEmergency()
+                ? __('Endorsed to CPIC with complete requirements')
+                : __('Requirements Completed. Endorsed items 1–11 to LWRD and items 12–16 with the WD-POW to ES');
 
-        $this->advance($project, $user, $action, $remarks);
+            // The timeline keeps the requested amount, since the project itself only stores the assigned one.
+            if (round((float) $amount, 2) !== round((float) $project->amount, 2)) {
+                $action .= '. '.__('Assigned a new loan amount of ₱:assigned (requested: ₱:requested)', [
+                    'assigned' => number_format((float) $amount, 2),
+                    'requested' => number_format((float) $project->amount, 2),
+                ]);
+            }
+
+            $type = $project->type->isEmergency() ? $project->type : ProjectType::regularFor((float) $amount);
+
+            if ($type !== $project->type) {
+                $action .= '. '.__('Changed the project type from :old to :new', ['old' => $project->type->shortLabel(), 'new' => $type->shortLabel()]);
+                $this->moveToChecklist($project, $type);
+            }
+
+            $project->amount = $amount;
+
+            $this->advance($project, $user, $action, $remarks);
+        });
+    }
+
+    /**
+     * Switches a project to another loan type. Each type has its own copy of the checklist, numbered the same,
+     * so uploaded files and returned items move to the same-numbered item of the new type's checklist.
+     */
+    private function moveToChecklist(Project $project, ProjectType $type): void
+    {
+        $newItems = Requirement::where('project_type', $type)->get()
+            ->keyBy(fn (Requirement $requirement) => $requirement->stage->value.'|'.$requirement->number);
+
+        foreach (Requirement::where('project_type', $project->type)->get() as $oldItem) {
+            $newItem = $newItems->get($oldItem->stage->value.'|'.$oldItem->number);
+
+            if ($newItem) {
+                $project->documents()->where('requirement_id', $oldItem->id)->update(['requirement_id' => $newItem->id]);
+                $project->returnedItems()->where('requirement_id', $oldItem->id)->update(['requirement_id' => $newItem->id]);
+            }
+        }
+
+        $project->type = $type;
     }
 
     /**
