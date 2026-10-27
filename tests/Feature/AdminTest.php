@@ -100,6 +100,21 @@ class AdminTest extends TestCase
             ->assertSee($row($completed), false)->assertDontSee($row($returned), false);
     }
 
+    public function test_admin_filters_apply_without_a_filter_button(): void
+    {
+        foreach (['admin.projects.index', 'admin.users.index', 'admin.water-districts.index'] as $route) {
+            $this->actingAs($this->admin)->get(route($route))
+                ->assertOk()
+                ->assertSee('x-on:change="$el.submit()"', false)
+                ->assertDontSee('>Filter</button>', false);
+        }
+
+        // Picking an option is an ordinary GET with the filter in the query string.
+        $returned = Project::factory()->for($this->lwdUser())->create(['status' => ProjectStatus::Returned]);
+        $this->actingAs($this->admin)->get(route('admin.projects.index', ['status' => 'returned']))
+            ->assertSee('>'.$returned->reference.'</td>', false);
+    }
+
     public function test_there_is_no_files_page(): void
     {
         $this->actingAs($this->admin)->get('/admin/files')->assertNotFound();

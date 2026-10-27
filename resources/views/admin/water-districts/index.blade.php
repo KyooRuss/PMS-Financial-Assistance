@@ -3,7 +3,8 @@
         @include('admin.partials.heading', ['title' => __('Water Districts'), 'subtitle' => __('The category (A–D) decides eligibility: emergency loans are for Category C and D only, and the 10% equity is required for A and B.')])
 
         <div class="flex flex-wrap items-end justify-between gap-3">
-            <form method="GET" class="flex flex-wrap items-end gap-3">
+            {{-- Filters apply as soon as an option is picked; the search box applies on Enter or when you leave it. --}}
+            <form method="GET" class="flex flex-wrap items-end gap-3" x-data x-on:change="$el.submit()" x-on:search="$el.submit()">
                 <div>
                     <label for="q" class="block text-xs font-medium text-gray-600">{{ __('Search') }}</label>
                     <input id="q" name="q" type="search" value="{{ request('q') }}" placeholder="{{ __('Name') }}"
@@ -18,7 +19,6 @@
                         @endforeach
                     </select>
                 </div>
-                <button type="submit" class="rounded-md bg-lwua-dark px-4 py-2 text-sm font-semibold text-white shadow hover:brightness-110">{{ __('Filter') }}</button>
             </form>
 
             <a href="{{ route('admin.water-districts.create') }}" class="inline-flex items-center gap-1 rounded-md bg-lwua-sky px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white shadow hover:brightness-110">

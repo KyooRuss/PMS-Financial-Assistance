@@ -3,7 +3,8 @@
         @include('admin.partials.heading', ['title' => __('Department Accounts'), 'subtitle' => __('LWUA staff accounts. Water district accounts are on each water district\'s page. Accounts are made inactive instead of deleted, so names stay on the timeline and on uploaded files.')])
 
         <div class="flex flex-wrap items-end justify-between gap-3">
-            <form method="GET" class="flex flex-wrap items-end gap-3">
+            {{-- Filters apply as soon as an option is picked; the search box applies on Enter or when you leave it. --}}
+            <form method="GET" class="flex flex-wrap items-end gap-3" x-data x-on:change="$el.submit()" x-on:search="$el.submit()">
                 <div>
                     <label for="q" class="block text-xs font-medium text-gray-600">{{ __('Search') }}</label>
                     <input id="q" name="q" type="search" value="{{ request('q') }}" placeholder="{{ __('Name or email') }}"
@@ -27,7 +28,6 @@
                         <option value="inactive" @selected(request('status') === 'inactive')>{{ __('Inactive') }}</option>
                     </select>
                 </div>
-                <button type="submit" class="rounded-md bg-lwua-dark px-4 py-2 text-sm font-semibold text-white shadow hover:brightness-110">{{ __('Filter') }}</button>
                 @if (request()->hasAny(['q', 'role', 'status']))
                     <a href="{{ route('admin.users.index') }}" class="py-2 text-sm text-gray-500 hover:text-gray-800">{{ __('Clear') }}</a>
                 @endif
