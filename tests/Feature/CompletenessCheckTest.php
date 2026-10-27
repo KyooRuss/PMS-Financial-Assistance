@@ -262,7 +262,7 @@ class CompletenessCheckTest extends TestCase
 
         // The LWD sees the return on the dashboard, the drawer and the form. In the timeline it reads the
         // remarks on the flagged items only, not WSUDD's general remarks.
-        $this->actingAs($this->lwd)->get('/dashboard')->assertSee('Fix &amp; Resubmit', false);
+        $this->actingAs($this->lwd)->get('/dashboard')->assertSee('Resubmit')->assertSee(route('projects.edit', $project));
         $this->actingAs($this->lwd)->get(route('dashboard', ['project' => $project->id, 'drawer' => 'progress']))
             ->assertSee('Item 16:')->assertSee('Certification is not signed.')->assertDontSee('Please check item 16.');
         $this->actingAs($this->wsudd)->get(route('office.projects.show', $project))

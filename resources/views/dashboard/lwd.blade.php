@@ -106,7 +106,7 @@
                                             @if ($project->status === \App\Enums\ProjectStatus::Returned)
                                                 <a href="{{ route('projects.edit', $project) }}" x-on:click.stop
                                                    class="inline-block rounded bg-amber-600 px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-white shadow hover:bg-amber-700">
-                                                    {{ __('Fix & Resubmit') }}
+                                                    {{ __('Resubmit') }}
                                                 </a>
                                             @else
                                                 <a href="{{ route('projects.edit', $project) }}" x-on:click.stop
