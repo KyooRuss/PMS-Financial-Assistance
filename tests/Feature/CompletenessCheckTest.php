@@ -269,7 +269,7 @@ class CompletenessCheckTest extends TestCase
         $this->actingAs($this->wsudd)->post(route('office.projects.disapprove-request', $project), ['remarks' => 'The water source is not sustainable.']);
 
         $this->actingAs($this->lwd)->get(route('dashboard', ['project' => $project->id, 'drawer' => 'progress']))
-            ->assertSeeInOrder(['Rejected the request', 'The water source is not sustainable.'])
+            ->assertSeeInOrder(['Rejected the request', 'bg-red-50', 'The water source is not sustainable.', 'bg-amber-50', 'Certification is not signed.'])  // the rejection reason in red, other remarks amber
             ->assertSee('Certification is not signed.')       // flagged-item remark, as before
             ->assertDontSee('Please check item 16.');          // WSUDD's general remark on the return stays hidden
     }

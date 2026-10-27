@@ -37,7 +37,12 @@
                     $showRemarks = $log->remarks && (! auth()->user()->hasRole(\App\Enums\Role::Lwd) || $isRejectionReason);
                 @endphp
                 @if ($showRemarks || $log->returnedItems->isNotEmpty())
-                    <div class="mt-1 space-y-1 rounded bg-amber-50 px-3 py-2 text-xs text-amber-900">
+                    {{-- Red for WSUDD's reason for rejecting the request; amber for every other remark. --}}
+                    <div @class([
+                        'mt-1 space-y-1 rounded px-3 py-2 text-xs',
+                        'bg-red-50 text-red-800 ring-1 ring-red-100' => $isRejectionReason,
+                        'bg-amber-50 text-amber-900' => ! $isRejectionReason,
+                    ])>
                         @if ($showRemarks)
                             <p>{{ $log->remarks }}</p>
                         @endif
