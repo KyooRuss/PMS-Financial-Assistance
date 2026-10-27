@@ -49,6 +49,16 @@ class ProjectDocument extends Model
     }
 
     /**
+     * The timeline entry an office file was uploaded with. Water district uploads have none.
+     *
+     * @return BelongsTo<ProjectLog, $this>
+     */
+    public function log(): BelongsTo
+    {
+        return $this->belongsTo(ProjectLog::class, 'project_log_id');
+    }
+
+    /**
      * @return BelongsTo<User, $this>
      */
     public function uploader(): BelongsTo

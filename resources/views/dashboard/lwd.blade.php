@@ -24,6 +24,21 @@
             <div class="mt-4">
                 @if ($selected)
                     <x-process-flow :project="$selected" />
+
+                    {{-- Clicking an office on the stepper shows the files that office uploaded. --}}
+                    <div x-data="{ selectedOffice: null }"
+                         x-on:office-selected.window="selectedOffice = $event.detail.office"
+                         x-show="selectedOffice" x-cloak
+                         class="mt-4 rounded-lg bg-white p-6 shadow-md ring-1 ring-black/5">
+                        <div class="flex items-center justify-between gap-3">
+                            <h2 class="text-lg font-semibold text-lwua-navy">{{ __('Files Uploaded') }}</h2>
+                            <button type="button" x-on:click="$dispatch('office-selected', { office: null })"
+                                    class="rounded p-1 text-gray-500 hover:bg-gray-100" aria-label="{{ __('Close') }}">
+                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </button>
+                        </div>
+                        @include('projects.partials.department-files', ['project' => $selected])
+                    </div>
                 @else
                     <div class="rounded-lg bg-white px-6 py-8 text-center text-sm text-gray-500 shadow-md ring-1 ring-black/5">
                         {{ __('The process flow of your request will appear here once you request a project.') }}

@@ -207,6 +207,23 @@ class Project extends Model
     }
 
     /**
+     * The project's files grouped by the department that uploaded them, keyed by role value (e.g. "es").
+     * Used by the stepper: clicking an office shows every file that office uploaded.
+     *
+     * @param  bool  $includeInternal  false for the water district, who can't see internal office files
+     * @return \Illuminate\Support\Collection<string, Collection<int, ProjectDocument>>
+     */
+    public function filesByDepartment(bool $includeInternal): \Illuminate\Support\Collection
+    {
+        return $this->documents
+            ->loadMissing(['log', 'requirement', 'uploader'])
+            ->sortBy([['created_at', 'asc'], ['id', 'asc']])
+            ->when(! $includeInternal, fn (Collection $files) => $files->reject->isInternal())
+            ->filter(fn (ProjectDocument $file) => $file->uploader !== null)
+            ->groupBy(fn (ProjectDocument $file) => $file->uploader->role->value);
+    }
+
+    /**
      * Stores an uploaded file on the private disk and records it on the project.
      */
     public function addDocument(UploadedFile $file, User $uploadedBy, ?int $requirementId = null, ?ProjectLog $log = null, bool $internal = false): ProjectDocument
