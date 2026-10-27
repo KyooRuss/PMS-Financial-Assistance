@@ -39,7 +39,7 @@ class SessionSecurityTest extends TestCase
     public function test_logout_ends_the_session_and_protected_pages_send_you_to_login(): void
     {
         $user = $this->lwdUser();
-        $this->post('/login', ['email' => $user->email, 'password' => 'password']);
+        $this->post('/login', ['login' => $user->email, 'password' => 'password']);
         $this->assertAuthenticatedAs($user);
 
         $this->post('/logout')
@@ -67,7 +67,7 @@ class SessionSecurityTest extends TestCase
         $this->actingAs($this->lwdUser())
             ->post('/_stale-form')
             ->assertRedirect(route('login'))
-            ->assertSessionHasErrors(['email' => 'Your session has expired. Please log in again.']);
+            ->assertSessionHasErrors(['login' => 'Your session has expired. Please log in again.']);
 
         // Signed out with no session at all, the auth middleware already sends them to login.
         auth()->logout();

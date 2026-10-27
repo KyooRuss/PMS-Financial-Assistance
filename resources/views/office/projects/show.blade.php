@@ -9,6 +9,9 @@
         $panel && $project->complianceReceived() => ['stage' => 'compliance', 'action' => route('office.projects.compliance.return', $project)],
         default => null,
     };
+
+    // The files card opens on the office the request is with now.
+    $currentOffice = \App\Support\ProcessFlow::roleFor($step['unit'])->value;
 @endphp
 
 <x-app-layout>
@@ -33,7 +36,7 @@
             </dl>
         </div>
 
-        <x-process-flow :project="$project" />
+        <x-process-flow :project="$project" :selected-office="$currentOffice" :toggleable="false" />
 
         @if ($errors->any())
             <div role="alert" class="rounded-md bg-red-50 px-4 py-3 text-sm text-red-700 ring-1 ring-red-200">
@@ -82,7 +85,7 @@
                 @endif
             </div>
 
-            {{-- Action panel + timeline --}}
+            {{-- Action panel + files --}}
             <div class="space-y-6">
                 @if ($canAct)
                 <section class="rounded-lg bg-white p-6 shadow-md ring-1 ring-black/5">
@@ -105,9 +108,13 @@
                 </section>
                 @endif
 
-                <section class="rounded-lg bg-white p-6 shadow-md ring-1 ring-black/5">
-                    <h2 class="text-lg font-semibold text-lwua-navy">{{ __('Timeline') }}</h2>
-                    @include('projects.partials.timeline')
+                {{-- Files uploaded by the office selected on the stepper (the current office at first). --}}
+                <section x-data="{ selectedOffice: @js($currentOffice) }"
+                         x-on:office-selected.window="selectedOffice = $event.detail.office"
+                         class="rounded-lg bg-white p-6 shadow-md ring-1 ring-black/5">
+                    <h2 class="text-lg font-semibold text-lwua-navy">{{ __('Files Uploaded') }}</h2>
+                    <p class="mt-1 text-xs text-gray-500">{{ __('Click an office on the process flow to see its files.') }}</p>
+                    @include('projects.partials.department-files')
                 </section>
             </div>
         </div>

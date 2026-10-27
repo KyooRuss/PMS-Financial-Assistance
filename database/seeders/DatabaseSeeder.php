@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\WaterDistrict;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 
 class DatabaseSeeder extends Seeder
 {
@@ -55,6 +56,7 @@ class DatabaseSeeder extends Seeder
     private function account(string $email, Role $role, string $firstName, string $lastName, ?int $waterDistrictId = null): void
     {
         User::firstOrCreate(['email' => $email], User::factory()->raw([
+            'username' => Str::before($email, '@'), // lwrd@pms.test logs in as "lwrd"
             'email' => $email,
             'first_name' => $firstName,
             'middle_name' => null,

@@ -37,10 +37,18 @@
                 @endforeach
             </div>
 
-            <div>
-                <x-input-label for="email" :value="__('Email')" />
-                <x-text-input id="email" name="email" type="email" class="mt-1 block w-full" :value="old('email', $user->email)" required />
-                <x-input-error class="mt-1" :messages="$errors->get('email')" />
+            <div class="grid gap-5 sm:grid-cols-2">
+                <div>
+                    <x-input-label for="username" :value="__('Username')" />
+                    <x-text-input id="username" name="username" type="text" class="mt-1 block w-full" :value="old('username', $user->username)" required autocapitalize="none" spellcheck="false" />
+                    <p class="mt-1 text-xs text-gray-500">{{ __('Used to log in, along with the email. Lowercase letters, numbers, dots, dashes or underscores.') }}</p>
+                    <x-input-error class="mt-1" :messages="$errors->get('username')" />
+                </div>
+                <div>
+                    <x-input-label for="email" :value="__('Email')" />
+                    <x-text-input id="email" name="email" type="email" class="mt-1 block w-full" :value="old('email', $user->email)" required />
+                    <x-input-error class="mt-1" :messages="$errors->get('email')" />
+                </div>
             </div>
 
             @if ($isWaterDistrict)

@@ -337,7 +337,7 @@ class CompletenessCheckTest extends TestCase
         $this->actingAs($this->lwd)->get(route('dashboard', ['project' => $project->id, 'drawer' => 'progress']))
             ->assertSee('Item 16:')->assertSee('Certification is not signed.')->assertDontSee('Please check item 16.');
         $this->actingAs($this->wsudd)->get(route('office.projects.show', $project))
-            ->assertSee('Please check item 16.')->assertSee('Certification is not signed.');
+            ->assertSee('Certification is not signed.');
         $this->actingAs($this->lwd)->get(route('projects.edit', $project))
             ->assertOk()->assertSee('To fix:')->assertSee('Certification is not signed.')->assertSee('Resubmit');
 

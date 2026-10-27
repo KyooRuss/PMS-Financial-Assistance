@@ -22,6 +22,7 @@ export default {
                     sky: '#1BA1F2',    // "Request Project" button
                     dark: '#0A4A7A',   // primary buttons (Submit, View Progress)
                     page: '#F3F6FB',   // page background
+                    red: '#D7263D',    // seal red (login page stripe)
                 },
             },
         },

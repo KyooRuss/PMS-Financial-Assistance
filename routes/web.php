@@ -98,6 +98,7 @@ Route::middleware(['auth', 'role:wsudd,es,lwrd,cpic,administrator,bfmd,lpmd,lega
 
 Route::middleware('auth')->group(function () {
     Route::get('/documents/{document}', [ProjectController::class, 'document'])->name('documents.show');
+    Route::get('/documents/{document}/file', [ProjectController::class, 'documentFile'])->name('documents.file');
 });
 
 // Only the System Admin manages their own name, email and password. Everyone else's account is managed by the System Admin.

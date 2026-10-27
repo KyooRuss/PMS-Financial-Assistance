@@ -70,7 +70,7 @@
                                         <span class="ml-1 rounded bg-amber-50 px-1.5 py-0.5 text-[11px] font-normal text-amber-700">{{ __('Temporary password') }}</span>
                                     @endif
                                 </p>
-                                <p class="text-xs text-gray-500">{{ $member->email }}</p>
+                                <p class="text-xs text-gray-500">{{ $member->username }} · {{ $member->email }}</p>
                             </div>
                             <div class="flex items-center gap-4">
                                 <span @class(['rounded-full px-2.5 py-0.5 text-xs font-medium', 'bg-green-50 text-green-700' => $member->is_active, 'bg-gray-100 text-gray-500' => ! $member->is_active])>

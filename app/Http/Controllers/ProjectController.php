@@ -84,14 +84,40 @@ class ProjectController extends Controller
     /**
      * Opens an uploaded PDF in the browser.
      */
-    public function document(Request $request, ProjectDocument $document): StreamedResponse
+    /**
+     * View-only page for an uploaded PDF. It has no download or print button.
+     */
+    public function document(Request $request, ProjectDocument $document): View
+    {
+        $this->authorizeDocument($request, $document);
+
+        return view('documents.viewer', ['document' => $document]);
+    }
+
+    /**
+     * The PDF itself, fetched by the viewer page. Opening this address directly shows the viewer instead,
+     * so the browser's own PDF viewer (with its download button) is never used.
+     */
+    public function documentFile(Request $request, ProjectDocument $document): StreamedResponse|RedirectResponse
+    {
+        $this->authorizeDocument($request, $document);
+
+        if ($request->header('X-PMS-Viewer') !== '1') {
+            return redirect()->route('documents.show', $document);
+        }
+
+        return Storage::disk('local')->response($document->path, $document->original_name, [
+            'Cache-Control' => 'no-store, private',
+            'X-Content-Type-Options' => 'nosniff',
+        ]);
+    }
+
+    private function authorizeDocument(Request $request, ProjectDocument $document): void
     {
         Gate::authorize('view', $document->project);
 
         // Office attachments (assessments etc.) are internal to LWUA.
         abort_if($document->isInternal() && ! $request->user()->role->isLwuaOffice(), 403);
-
-        return Storage::disk('local')->response($document->path, $document->original_name);
     }
 
     private function saveDocuments(SaveProjectRequest $request, Project $project): void
