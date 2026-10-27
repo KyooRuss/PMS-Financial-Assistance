@@ -92,6 +92,7 @@ class CompletenessCheckTest extends TestCase
             ->assertSee('Submitted Requirements')
             ->assertSee('Flag for return')
             ->assertSee('APPROVED')->assertSee('DISAPPROVED')
+            ->assertSee('x-show="flagged" x-cloak', false)  // "Return to Water District" shows only once an item is flagged
             ->assertSee('Return to Water District')
             ->assertSee('Assign a New Loan Amount')
             ->assertSee('This amount replaces the requested one.');

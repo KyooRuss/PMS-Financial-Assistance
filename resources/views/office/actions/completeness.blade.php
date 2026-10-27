@@ -19,19 +19,25 @@
     <x-input-error class="mt-1" :messages="$errors->get('remarks')" />
 </div>
 
-<div class="mt-4 flex flex-col gap-2">
+{{-- "Return to Water District" only appears once at least one checklist item is flagged for return. --}}
+<div class="mt-4 flex flex-col gap-2"
+     x-data="{
+         flagged: false,
+         countFlags() { this.flagged = this.$root.closest('form').querySelectorAll('input[name$=&quot;[flag]&quot;]:checked').length > 0 },
+     }"
+     x-init="countFlags(); $root.closest('form').addEventListener('change', () => countFlags())">
     <button type="submit" formaction="{{ route('office.projects.endorse', $project) }}"
             onclick="return confirm(@js(__('Endorse :ref as complete?', ['ref' => $project->reference])))"
-            class="rounded-md bg-green-600 px-4 py-2.5 text-sm font-semibold uppercase text-white shadow hover:bg-green-700">
+            class="rounded-md bg-green-700 px-4 py-2.5 text-sm font-semibold uppercase text-white shadow hover:bg-green-800">
         {{ $project->type->isEmergency() ? __('Endorse to CPIC') : __('APPROVED') }}
     </button>
     {{-- Ends the request: nobody acts on it after this. --}}
     <button type="submit" formaction="{{ route('office.projects.disapprove-request', $project) }}"
             onclick="return confirm(@js(__('Disapprove :ref? This ends the request and it cannot continue.', ['ref' => $project->reference])))"
-            class="rounded-md bg-red-600 px-4 py-2.5 text-sm font-semibold uppercase text-white shadow hover:bg-red-700">
+            class="rounded-md bg-red-700 px-4 py-2.5 text-sm font-semibold uppercase text-white shadow hover:bg-red-800">
         {{ __('DISAPPROVED') }}
     </button>
-    <button type="submit"
+    <button type="submit" x-show="flagged" x-cloak
             onclick="return confirm(@js(__('Return :ref to the water district with the flagged items?', ['ref' => $project->reference])))"
             class="rounded-md border border-amber-600 bg-white px-4 py-2.5 text-sm font-semibold uppercase text-amber-700 hover:bg-amber-50">
         {{ __('Return to Water District') }}
