@@ -104,6 +104,19 @@ class ProcessingTimeTest extends TestCase
         $this->assertNull($done->current_role);
     }
 
+    public function test_per_office_rows_include_offices_with_only_waiting_requests(): void
+    {
+        $this->projectWithTimeline([['LWD', 1, 0], ['WSUDD', 2, 1], ['ES', 3, 3], ['LWRD', 4, 5]]); // at CPIC, which has not acted yet
+
+        $offices = (new ProcessingTimes)->perOffice();
+
+        $this->assertSame([Role::Wsudd, Role::Es, Role::Lwrd, Role::Cpic], $offices->pluck('role')->all());
+        $this->assertEqualsWithDelta(24, $offices[0]['average'], 0.01);
+        $this->assertSame(0, $offices[0]['waiting']);
+        $this->assertNull($offices[3]['average']);
+        $this->assertSame(1, $offices[3]['waiting']);
+    }
+
     public function test_report_page_for_lwua_staff_only(): void
     {
         $this->projectWithTimeline([['LWD', 1, 0], ['WSUDD', 2, 2], ['ES', 3, 8]]);
@@ -111,10 +124,13 @@ class ProcessingTimeTest extends TestCase
         $this->actingAs(User::factory()->create(['role' => Role::Administrator]))
             ->get(route('reports.processing-time'))
             ->assertOk()
-            ->assertSee('Average time per handling, by department')
-            ->assertSee('Slowest department')
+            ->assertSee('Average days per office')
+            ->assertSee('Requests in progress')
+            ->assertSee('Waiting now')
+            ->assertSee('Show step-by-step details')
             ->assertSee('ES – Rapid assessment of WD-POW')
             ->assertSee('6 days')
+            ->assertDontSee('handling')
             ->assertDontSee('6.0');
 
         $this->actingAs(User::factory()->create(['role' => Role::SystemAdmin]))->get(route('reports.processing-time'))->assertOk();
