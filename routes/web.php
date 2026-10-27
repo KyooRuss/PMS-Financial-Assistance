@@ -34,9 +34,6 @@ Route::middleware(['auth', 'role:lwd'])->group(function () {
 Route::middleware(['auth', 'role:system_admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', Admin\OverviewController::class)->name('overview');
     Route::get('/projects', [Admin\ProjectController::class, 'index'])->name('projects.index');
-    Route::get('/files', [Admin\DocumentController::class, 'index'])->name('documents.index');
-    Route::get('/departments', [Admin\DepartmentController::class, 'index'])->name('departments.index');
-    Route::get('/activity', [Admin\ActivityController::class, 'index'])->name('activity.index');
 
     Route::resource('users', Admin\UserController::class)->except(['show', 'destroy']);
     Route::patch('/users/{user}/active', [Admin\UserController::class, 'toggleActive'])->name('users.toggle-active');
@@ -58,6 +55,7 @@ Route::middleware(['auth', 'role:wsudd,es,lwrd,cpic,administrator,bfmd,lpmd,lega
 
         Route::middleware('role:wsudd')->group(function () {
             Route::post('/projects/{project}/endorse', [CompletenessCheckController::class, 'endorse'])->name('projects.endorse');
+            Route::post('/projects/{project}/disapprove-request', [CompletenessCheckController::class, 'disapprove'])->name('projects.disapprove-request');
             Route::post('/projects/{project}/return', [CompletenessCheckController::class, 'return'])->name('projects.return');
         });
 
@@ -100,7 +98,10 @@ Route::middleware(['auth', 'role:wsudd,es,lwrd,cpic,administrator,bfmd,lpmd,lega
 
 Route::middleware('auth')->group(function () {
     Route::get('/documents/{document}', [ProjectController::class, 'document'])->name('documents.show');
+});
 
+// Only the System Admin manages their own name, email and password. Everyone else's account is managed by the System Admin.
+Route::middleware(['auth', 'role:system_admin'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
 });

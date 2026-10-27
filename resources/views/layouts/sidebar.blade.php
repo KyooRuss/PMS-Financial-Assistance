@@ -45,7 +45,7 @@
         </button>
     </div>
 
-    <nav class="flex-1 space-y-5 overflow-y-auto px-3 py-4">
+    <nav class="sidebar-scroll flex-1 space-y-5 overflow-y-auto px-3 py-4">
         @if ($isAdmin)
             <div class="space-y-1">
                 <x-sidebar-link :href="route('admin.overview')" :active="request()->routeIs('admin.overview')">
@@ -56,27 +56,6 @@
                     <x-slot:icon>{!! $icon('M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2') !!}</x-slot:icon>
                     {{ __('All Requests') }}
                 </x-sidebar-link>
-            </div>
-
-            <div>
-                <p class="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-white/55">{{ __('Status') }}</p>
-                <div class="space-y-0.5">
-                    @php
-                        $inProgress = collect(\App\Http\Controllers\Admin\ProjectController::IN_PROGRESS)->sum(fn ($status) => $statusCounts[$status->value] ?? 0);
-                    @endphp
-                    <x-sidebar-link :href="route('admin.projects.index', ['status' => 'in_progress'])" :active="$filterIs('status', 'in_progress')" :count="$inProgress">{{ __('In Progress') }}</x-sidebar-link>
-                    @foreach ([
-                        \App\Enums\ProjectStatus::Returned,
-                        \App\Enums\ProjectStatus::ForCompliance,
-                        \App\Enums\ProjectStatus::Approved,
-                        \App\Enums\ProjectStatus::Completed,
-                        \App\Enums\ProjectStatus::Disapproved,
-                    ] as $status)
-                        <x-sidebar-link :href="route('admin.projects.index', ['status' => $status->value])" :active="$filterIs('status', $status->value)" :count="$statusCounts[$status->value] ?? 0">
-                            {{ $status === \App\Enums\ProjectStatus::Returned ? __('Returned') : $status->label() }}
-                        </x-sidebar-link>
-                    @endforeach
-                </div>
             </div>
 
             <div>
@@ -98,23 +77,11 @@
                 <div class="space-y-0.5">
                     <x-sidebar-link :href="route('admin.users.index')" :active="request()->routeIs('admin.users.*')">
                         <x-slot:icon>{!! $icon('M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z') !!}</x-slot:icon>
-                        {{ __('Accounts') }}
+                        {{ __('Department Accounts') }}
                     </x-sidebar-link>
                     <x-sidebar-link :href="route('admin.water-districts.index')" :active="request()->routeIs('admin.water-districts.*')">
                         <x-slot:icon>{!! $icon('M12 3c-3 4-6 7.5-6 11a6 6 0 0012 0c0-3.5-3-7-6-11z') !!}</x-slot:icon>
                         {{ __('Water Districts') }}
-                    </x-sidebar-link>
-                    <x-sidebar-link :href="route('admin.departments.index')" :active="request()->routeIs('admin.departments.*')">
-                        <x-slot:icon>{!! $icon('M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4') !!}</x-slot:icon>
-                        {{ __('Departments') }}
-                    </x-sidebar-link>
-                    <x-sidebar-link :href="route('admin.documents.index')" :active="request()->routeIs('admin.documents.*')">
-                        <x-slot:icon>{!! $icon('M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z') !!}</x-slot:icon>
-                        {{ __('Files') }}
-                    </x-sidebar-link>
-                    <x-sidebar-link :href="route('admin.activity.index')" :active="request()->routeIs('admin.activity.*')">
-                        <x-slot:icon>{!! $icon('M4 6h16M4 12h16M4 18h7') !!}</x-slot:icon>
-                        {{ __('Activity Log') }}
                     </x-sidebar-link>
                     <x-sidebar-link :href="route('reports.processing-time')" :active="request()->routeIs('reports.processing-time')">
                         <x-slot:icon>{!! $icon('M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z') !!}</x-slot:icon>
@@ -165,8 +132,11 @@
                 </button>
             </form>
         </div>
-        <a href="{{ route('profile.edit') }}" @class(['mt-3 block rounded-md px-3 py-1.5 text-center text-xs', 'bg-white text-lwua-navy font-semibold' => request()->routeIs('profile.edit'), 'text-white/80 ring-1 ring-white/20 hover:bg-white/10' => ! request()->routeIs('profile.edit')])>
-            {{ __('My Profile') }}
-        </a>
+        {{-- Only the System Admin edits their own account; everyone else's is managed by the System Admin. --}}
+        @if ($user->hasRole(\App\Enums\Role::SystemAdmin))
+            <a href="{{ route('profile.edit') }}" @class(['mt-3 block rounded-md px-3 py-1.5 text-center text-xs', 'bg-white text-lwua-navy font-semibold' => request()->routeIs('profile.edit'), 'text-white/80 ring-1 ring-white/20 hover:bg-white/10' => ! request()->routeIs('profile.edit')])>
+                {{ __('My Profile') }}
+            </a>
+        @endif
     </div>
 </aside>

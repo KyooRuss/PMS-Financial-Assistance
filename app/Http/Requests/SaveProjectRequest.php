@@ -18,7 +18,7 @@ class SaveProjectRequest extends FormRequest
 {
     public const MAX_FILE_KB = 10240; // 10 MB
 
-    public const THRESHOLD = 50_000_000;
+    public const THRESHOLD = ProjectType::THRESHOLD;
 
     public function authorize(): bool
     {

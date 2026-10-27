@@ -12,7 +12,7 @@
                     </p>
                     <p class="mt-0.5 text-xs text-gray-500">
                         <a href="{{ route('office.projects.show', $log->project) }}" class="font-medium text-lwua-blue hover:underline">{{ $log->project->reference }}</a>
-                        · {{ $log->project->title }} · {{ $log->project->waterDistrict->name }}
+                        · {{ $log->project->waterDistrict->name }}
                     </p>
                 </div>
                 <p class="shrink-0 text-xs text-gray-500 sm:text-right">

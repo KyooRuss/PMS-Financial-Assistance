@@ -27,8 +27,10 @@ class SidebarTest extends TestCase
             ->get(route('admin.overview'))
             ->assertOk()
             ->assertSee('Admin Portal')
-            ->assertSeeInOrder(['All Requests', 'Status', 'In Progress', 'Workflow Step', 'WSUDD / UDEV', 'Kept on file', 'Manage', 'Accounts', 'Processing Time'])
+            ->assertSeeInOrder(['All Requests', 'Workflow Step', 'WSUDD / UDEV', 'Kept on file', 'Manage', 'Department Accounts', 'Water Districts', 'Processing Time'])
             ->assertSee(route('admin.projects.index', ['waiting' => 'cpic']), false)
+            // No STATUS section in the sidebar (the All Projects Status filter remains).
+            ->assertDontSee(route('admin.projects.index', ['status' => 'in_progress']), false)
             ->assertDontSee('Request Project');
     }
 
@@ -56,17 +58,29 @@ class SidebarTest extends TestCase
             ->assertDontSee('Admin Portal');
     }
 
+    public function test_the_account_menu_shows_the_name_surname_first(): void
+    {
+        $user = $this->lwdUser();
+        $user->update(['first_name' => 'Juan', 'middle_name' => 'Santos', 'last_name' => 'Dela Cruz']);
+
+        $this->actingAs($user)->get('/dashboard')->assertSee('Dela Cruz, Juan Santos');
+
+        // Without a middle name there is no trailing space or dash.
+        $user->update(['middle_name' => null]);
+        $this->actingAs($user)->get('/dashboard')->assertSee('Dela Cruz, Juan</dd>', false);
+    }
+
     public function test_in_progress_filter_groups_the_active_statuses(): void
     {
         $user = $this->lwdUser();
-        Project::factory()->for($user)->create(['title' => 'Active Returned', 'status' => ProjectStatus::Returned]);
-        Project::factory()->for($user)->create(['title' => 'Active Approved', 'status' => ProjectStatus::Approved, 'current_step' => 13]);
-        Project::factory()->for($user)->create(['title' => 'Closed Completed', 'status' => ProjectStatus::Completed]);
-        Project::factory()->for($user)->draft()->create(['title' => 'Just A Draft']);
+        $returned = Project::factory()->for($user)->create(['status' => ProjectStatus::Returned]);
+        $approved = Project::factory()->for($user)->create(['status' => ProjectStatus::Approved, 'current_step' => 13]);
+        $completed = Project::factory()->for($user)->create(['status' => ProjectStatus::Completed]);
+        $draft = Project::factory()->for($user)->draft()->create();
 
         $this->actingAs(User::factory()->create(['role' => Role::SystemAdmin]))
             ->get(route('admin.projects.index', ['status' => 'in_progress']))
-            ->assertSee('Active Returned')->assertSee('Active Approved')
-            ->assertDontSee('Closed Completed')->assertDontSee('Just A Draft');
+            ->assertSee($returned->reference)->assertSee($approved->reference)
+            ->assertDontSee($completed->reference)->assertDontSee($draft->reference);
     }
 }

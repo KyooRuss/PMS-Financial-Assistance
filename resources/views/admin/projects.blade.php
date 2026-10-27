@@ -2,10 +2,11 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         @include('admin.partials.heading', ['title' => __('All Projects'), 'subtitle' => __('Every request from every water district. Opening one shows the same review page the offices use; the System Admin can view but not act.')])
 
-        <form method="GET" class="flex flex-wrap items-end gap-3">
+        {{-- Filters apply as soon as an option is picked; the search box applies on Enter or when you leave it. --}}
+        <form method="GET" class="flex flex-wrap items-end gap-3" x-data x-on:change="$el.submit()" x-on:search="$el.submit()">
             <div>
                 <label for="q" class="block text-xs font-medium text-gray-600">{{ __('Search') }}</label>
-                <input id="q" name="q" type="search" value="{{ request('q') }}" placeholder="{{ __('Title or P005') }}"
+                <input id="q" name="q" type="search" value="{{ request('q') }}" placeholder="{{ __('P001 or Category A') }}"
                        class="mt-1 w-56 rounded-md border-gray-300 text-sm shadow-sm focus:border-lwua-blue focus:ring-lwua-blue">
             </div>
             <div>
@@ -14,6 +15,7 @@
                     <option value="">{{ __('All') }}</option>
                     <option value="in_progress" @selected(request('status') === 'in_progress')>{{ __('In progress (all active)') }}</option>
                     @foreach (\App\Enums\ProjectStatus::cases() as $status)
+                        @continue($status === \App\Enums\ProjectStatus::Draft)
                         <option value="{{ $status->value }}" @selected(request('status') === $status->value)>{{ $status->label() }}</option>
                     @endforeach
                 </select>
@@ -45,7 +47,6 @@
                     @endforeach
                 </select>
             </div>
-            <button type="submit" class="rounded-md bg-lwua-dark px-4 py-2 text-sm font-semibold text-white shadow hover:brightness-110">{{ __('Filter') }}</button>
             @if (request()->hasAny(['q', 'status', 'type', 'waiting', 'district']))
                 <a href="{{ route('admin.projects.index') }}" class="py-2 text-sm text-gray-500 hover:text-gray-800">{{ __('Clear') }}</a>
             @endif
@@ -78,7 +79,6 @@
                                 @if ($project->funding_purpose) <span class="text-xs text-gray-500">({{ $project->funding_purpose->label() }})</span> @endif
                             </td>
                             <td class="max-w-xs px-6 py-3">
-                                <p class="truncate text-gray-800" title="{{ $project->title }}">{{ $project->title }}</p>
                                 @if ($project->amount) <p class="text-xs tabular-nums text-gray-500">₱{{ number_format($project->amount, 2) }}</p> @endif
                             </td>
                             <td class="px-6 py-3 whitespace-nowrap">

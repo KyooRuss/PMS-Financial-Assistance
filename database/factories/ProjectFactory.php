@@ -24,8 +24,6 @@ class ProjectFactory extends Factory
             'water_district_id' => fn (array $attributes) => User::find($attributes['user_id'])->water_district_id,
             'type' => ProjectType::Regular50MBelow,
             'funding_purpose' => null,
-            'title' => fake()->randomElement(['Water Supply Expansion', 'Pipeline Rehabilitation', 'New Production Well', 'Reservoir Construction']).' – '.fake()->city(),
-            'description' => fake()->sentence(12),
             'amount' => fake()->numberBetween(5, 50) * 1_000_000,
             'status' => ProjectStatus::UnderEvaluation,
             'current_step' => 2,
@@ -43,7 +41,6 @@ class ProjectFactory extends Factory
         return $this->state([
             'type' => ProjectType::Emergency,
             'funding_purpose' => $purpose,
-            'title' => 'Emergency Rehabilitation – '.fake()->city(),
         ]);
     }
 }

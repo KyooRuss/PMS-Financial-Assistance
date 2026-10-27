@@ -69,7 +69,7 @@ class ProjectDrawerTest extends TestCase
             ->assertSee('1 of 14 required items uploaded')
             ->assertSee('Missing')
             ->assertSee('Not provided · optional')
-            ->assertSee('LWUA Documents')
+            ->assertDontSee('LWUA Documents')  // only LPMD, ES, BFMD, LWRD and the System Admin see these
             ->assertDontSee('>Remove<', false);  // no removing files after submission
     }
 
@@ -88,15 +88,22 @@ class ProjectDrawerTest extends TestCase
         $user = $this->lwdUser();
         $project = Project::factory()->for($user)->create(['status' => ProjectStatus::Returned, 'current_step' => 2]);
         ProjectLog::factory()->for($project)->for($user)->by('LWD', 1)->create(['action' => 'Submitted the request and requirements']);
-        ProjectLog::factory()->for($project)->by('WSUDD', 2)->create(['action' => 'Returned the request', 'remarks' => 'Item 16 is not signed.']);
+        $return = ProjectLog::factory()->for($project)->by('WSUDD', 2)->create(['action' => 'Returned the request', 'remarks' => 'Please review before resubmitting.']);
+        $project->returnedItems()->create([
+            'requirement_id' => Requirement::checklist($project->type, RequirementStage::PreEvaluation)->where('number', 16)->value('id'),
+            'project_log_id' => $return->id,
+            'remarks' => 'Item 16 is not signed.',
+        ]);
 
+        // The water district reads the remarks on the flagged item, but not WSUDD's general remarks.
         $this->actingAs($user)
             ->get(route('dashboard', ['project' => $project->id, 'drawer' => 'progress']))
             ->assertOk()
             ->assertSee('Returned – Incomplete')
             ->assertSee('Step 2 of 15 · WSUDD – Completeness check')
             ->assertSee('fix the items and resubmit')
-            ->assertSeeInOrder(['Returned the request', 'Item 16 is not signed.', 'Submitted the request and requirements']);
+            ->assertSeeInOrder(['Returned the request', 'Item 16:', 'Item 16 is not signed.', 'Submitted the request and requirements'])
+            ->assertDontSee('Please review before resubmitting.');
     }
 
     public function test_submitting_writes_the_first_timeline_entry(): void
@@ -109,7 +116,7 @@ class ProjectDrawerTest extends TestCase
         }
 
         $this->actingAs($user)->put(route('projects.update', $project), [
-            'action' => 'submit', 'title' => $project->title, 'amount' => 30_000_000,
+            'action' => 'submit', 'amount' => 30_000_000,
         ])->assertSessionHasNoErrors();
 
         $log = $project->logs()->sole();
@@ -121,14 +128,14 @@ class ProjectDrawerTest extends TestCase
     public function test_drawer_cannot_open_another_districts_project(): void
     {
         $user = $this->lwdUser();
-        Project::factory()->for($user)->create(['title' => 'Mine']);
-        $foreign = Project::factory()->for($this->lwdUser('A'))->create(['title' => 'Theirs']);
+        $mine = Project::factory()->for($user)->create();
+        $foreign = Project::factory()->for($this->lwdUser('A'))->create();
 
         $this->actingAs($user)
             ->get(route('dashboard', ['project' => $foreign->id, 'drawer' => 'files']))
             ->assertOk()
-            ->assertViewHas('selected', fn (Project $selected) => $selected->title === 'Mine')
-            ->assertDontSee('Theirs');
+            ->assertViewHas('selected', fn (Project $selected) => $selected->is($mine))
+            ->assertDontSee($foreign->reference);
     }
 
     public function test_unknown_drawer_value_is_ignored(): void

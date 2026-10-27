@@ -62,7 +62,16 @@ class Project extends Model
      */
     public function awaitsDisapprovalLetter(): bool
     {
-        return $this->status === ProjectStatus::Disapproved && $this->disapproval_letter_sent_at === null;
+        return $this->status === ProjectStatus::Disapproved && $this->disapproval_letter_sent_at === null
+            && ! $this->disapprovedByWsudd();
+    }
+
+    /**
+     * WSUDD rejected the request at the completeness check. That ends it at once, with no letter from LWRD.
+     */
+    public function disapprovedByWsudd(): bool
+    {
+        return $this->status === ProjectStatus::Disapproved && $this->currentStep()['key'] === 'completeness';
     }
 
     /**
@@ -229,9 +238,11 @@ class Project extends Model
                 ? __('CPIC did not prioritize this request. It was returned to WSUDD, who will inform you.')
                 : __('CPIC did not prioritize this request. It is kept on file for future funding.'),
             ProjectStatus::ForCompliance => __('LWRD is waiting for your post-evaluation documents and your concurrence with the cash flow projections.'),
-            ProjectStatus::Disapproved => $this->disapproval_letter_sent_at
-                ? __('The Administrator disapproved this request. LWRD\'s letter is in the timeline.')
-                : __('The Administrator disapproved this request. LWRD will send you a letter.'),
+            ProjectStatus::Disapproved => match (true) {
+                $this->disapprovedByWsudd() => __('WSUDD rejected this request. The request is closed.'),
+                $this->disapproval_letter_sent_at !== null => __('The Administrator disapproved this request. LWRD\'s letter is in the timeline.'),
+                default => __('The Administrator disapproved this request. LWRD will send you a letter.'),
+            },
             ProjectStatus::Completed => __('The Financial Assistance Contract has been prepared.'),
         };
     }

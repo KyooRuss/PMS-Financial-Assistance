@@ -16,7 +16,6 @@
                 </p>
                 <p class="mt-0.5 text-xs text-gray-500">
                     {{ $log->created_at->format('M j, Y · g:i A') }}
-                    @if ($log->user) · {{ $log->user->full_name }} @endif
                 </p>
                 {{-- Files uploaded with the action; internal office attachments are hidden from the water district. --}}
                 @php
@@ -29,9 +28,22 @@
                     </a>
                 @endforeach
 
-                @if ($log->remarks || $log->returnedItems->isNotEmpty())
-                    <div class="mt-1 space-y-1 rounded bg-amber-50 px-3 py-2 text-xs text-amber-900">
-                        @if ($log->remarks)
+                {{--
+                    The water district sees the remarks on the items flagged for return and WSUDD's reason for rejecting
+                    the request (the newest entry of a request WSUDD rejected), but not the offices' other remarks.
+                --}}
+                @php
+                    $isRejectionReason = $loop->first && $project->disapprovedByWsudd();
+                    $showRemarks = $log->remarks && (! auth()->user()->hasRole(\App\Enums\Role::Lwd) || $isRejectionReason);
+                @endphp
+                @if ($showRemarks || $log->returnedItems->isNotEmpty())
+                    {{-- Red for WSUDD's reason for rejecting the request; amber for every other remark. --}}
+                    <div @class([
+                        'mt-1 space-y-1 rounded px-3 py-2 text-xs',
+                        'bg-red-50 text-red-800 ring-1 ring-red-100' => $isRejectionReason,
+                        'bg-amber-50 text-amber-900' => ! $isRejectionReason,
+                    ])>
+                        @if ($showRemarks)
                             <p>{{ $log->remarks }}</p>
                         @endif
                         @if ($log->returnedItems->isNotEmpty())

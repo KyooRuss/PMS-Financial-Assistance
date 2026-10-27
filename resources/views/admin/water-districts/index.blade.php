@@ -3,7 +3,8 @@
         @include('admin.partials.heading', ['title' => __('Water Districts'), 'subtitle' => __('The category (A–D) decides eligibility: emergency loans are for Category C and D only, and the 10% equity is required for A and B.')])
 
         <div class="flex flex-wrap items-end justify-between gap-3">
-            <form method="GET" class="flex flex-wrap items-end gap-3">
+            {{-- Filters apply as soon as an option is picked; the search box applies on Enter or when you leave it. --}}
+            <form method="GET" class="flex flex-wrap items-end gap-3" x-data x-on:change="$el.submit()" x-on:search="$el.submit()">
                 <div>
                     <label for="q" class="block text-xs font-medium text-gray-600">{{ __('Search') }}</label>
                     <input id="q" name="q" type="search" value="{{ request('q') }}" placeholder="{{ __('Name') }}"
@@ -18,7 +19,6 @@
                         @endforeach
                     </select>
                 </div>
-                <button type="submit" class="rounded-md bg-lwua-dark px-4 py-2 text-sm font-semibold text-white shadow hover:brightness-110">{{ __('Filter') }}</button>
             </form>
 
             <a href="{{ route('admin.water-districts.create') }}" class="inline-flex items-center gap-1 rounded-md bg-lwua-sky px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white shadow hover:brightness-110">
@@ -33,7 +33,7 @@
                         <th scope="col" class="px-6 py-3 text-left">{{ __('Name') }}</th>
                         <th scope="col" class="px-6 py-3 text-left">{{ __('Category') }}</th>
                         <th scope="col" class="px-6 py-3 text-left">{{ __('Address') }}</th>
-                        <th scope="col" class="px-6 py-3 text-right">{{ __('Users') }}</th>
+                        <th scope="col" class="px-6 py-3 text-right">{{ __('Accounts') }}</th>
                         <th scope="col" class="px-6 py-3 text-right">{{ __('Projects') }}</th>
                         <th scope="col" class="px-6 py-3"><span class="sr-only">{{ __('Actions') }}</span></th>
                     </tr>
@@ -44,7 +44,9 @@
                             <td class="px-6 py-3 font-medium text-gray-900">{{ $district->name }}</td>
                             <td class="px-6 py-3 text-gray-700">{{ $district->category }}</td>
                             <td class="px-6 py-3 text-gray-700">{{ $district->address ?? '—' }}</td>
-                            <td class="px-6 py-3 text-right text-gray-900">{{ $district->users_count }}</td>
+                            <td class="px-6 py-3 text-right">
+                                <a href="{{ route('admin.water-districts.edit', $district) }}" class="text-lwua-blue hover:underline">{{ $district->users_count }}</a>
+                            </td>
                             <td class="px-6 py-3 text-right">
                                 <a href="{{ route('admin.projects.index', ['district' => $district->id]) }}" class="text-lwua-blue hover:underline">{{ $district->projects_count }}</a>
                             </td>

@@ -44,25 +44,43 @@
             </div>
         </form>
 
+        {{-- The water district's accounts are managed here (they are not on the Accounts page). --}}
         @if ($district->exists)
             <section class="rounded-lg bg-white p-6 shadow-md ring-1 ring-black/5">
-                <div class="flex items-baseline justify-between gap-3">
-                    <h2 class="text-base font-semibold text-lwua-navy">{{ __('Users') }}</h2>
-                    <a href="{{ route('admin.projects.index', ['district' => $district->id]) }}" class="text-sm font-medium text-lwua-blue hover:underline">
-                        {{ trans_choice(':count project|:count projects', $district->projects_count) }} &rarr;
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                        <h2 class="text-base font-semibold text-lwua-navy">{{ __('Accounts') }}</h2>
+                        <a href="{{ route('admin.projects.index', ['district' => $district->id]) }}" class="text-xs font-medium text-lwua-blue hover:underline">
+                            {{ trans_choice(':count project|:count projects', $district->projects_count) }} &rarr;
+                        </a>
+                    </div>
+                    <a href="{{ route('admin.users.create', ['water_district' => $district->id]) }}"
+                       class="inline-flex items-center gap-1 rounded-md bg-lwua-sky px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white shadow hover:brightness-110">
+                        <span aria-hidden="true">+</span> {{ __('Add Account') }}
                     </a>
                 </div>
-                <ul class="mt-3 divide-y divide-gray-100 text-sm">
+
+                <ul class="mt-4 divide-y divide-gray-100 text-sm">
                     @forelse ($district->users as $member)
-                        <li class="flex items-center justify-between gap-3 py-2">
-                            <a href="{{ route('admin.users.edit', $member) }}" @class(['hover:underline', 'text-gray-900' => $member->is_active, 'text-gray-400 line-through' => ! $member->is_active])>{{ $member->full_name }}</a>
-                            <span class="text-xs text-gray-500">{{ $member->email }}</span>
+                        <li class="flex flex-wrap items-center justify-between gap-3 py-3">
+                            <div class="min-w-0">
+                                <p @class(['font-medium', 'text-gray-900' => $member->is_active, 'text-gray-400' => ! $member->is_active])>
+                                    {{ $member->full_name }}
+                                    @if ($member->must_change_password)
+                                        <span class="ml-1 rounded bg-amber-50 px-1.5 py-0.5 text-[11px] font-normal text-amber-700">{{ __('Temporary password') }}</span>
+                                    @endif
+                                </p>
+                                <p class="text-xs text-gray-500">{{ $member->email }}</p>
+                            </div>
+                            <div class="flex items-center gap-4">
+                                <span @class(['rounded-full px-2.5 py-0.5 text-xs font-medium', 'bg-green-50 text-green-700' => $member->is_active, 'bg-gray-100 text-gray-500' => ! $member->is_active])>
+                                    {{ $member->is_active ? __('Active') : __('Inactive') }}
+                                </span>
+                                <a href="{{ route('admin.users.edit', $member) }}" class="font-medium text-lwua-blue hover:underline">{{ __('Edit') }}</a>
+                            </div>
                         </li>
                     @empty
-                        <li class="py-2 text-gray-500">
-                            {{ __('No users yet.') }}
-                            <a href="{{ route('admin.users.create') }}" class="font-medium text-lwua-blue hover:underline">{{ __('Create one') }}</a>
-                        </li>
+                        <li class="py-3 text-gray-500">{{ __('No accounts yet. Use "Add Account" to create one.') }}</li>
                     @endforelse
                 </ul>
             </section>

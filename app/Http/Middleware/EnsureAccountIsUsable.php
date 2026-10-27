@@ -30,9 +30,8 @@ class EnsureAccountIsUsable
             return redirect()->route('login')->withErrors(['email' => __('This account is inactive. Please contact LWUA.')]);
         }
 
-        if ($user->must_change_password && ! $request->routeIs('profile.edit', 'password.update', 'logout')) {
-            return redirect()->route('profile.edit')
-                ->with('error', __('You are using a temporary password. Please set your own password to continue.'));
+        if ($user->must_change_password && ! $request->routeIs('password.setup', 'password.update', 'logout')) {
+            return redirect()->route('password.setup');
         }
 
         return $next($request);

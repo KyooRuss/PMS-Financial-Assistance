@@ -9,8 +9,6 @@ use App\Models\User;
 use App\Models\WaterDistrict;
 use Database\Seeders\RequirementSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class AdminTest extends TestCase
@@ -36,7 +34,7 @@ class AdminTest extends TestCase
 
     public function test_only_the_system_admin_can_open_the_admin_area(): void
     {
-        foreach (['admin.overview', 'admin.projects.index', 'admin.documents.index', 'admin.users.index', 'admin.water-districts.index', 'admin.departments.index', 'admin.activity.index'] as $route) {
+        foreach (['admin.overview', 'admin.projects.index', 'admin.users.index', 'admin.water-districts.index'] as $route) {
             $this->actingAs($this->admin)->get(route($route))->assertOk();
             $this->actingAs(User::factory()->create(['role' => Role::Administrator]))->get(route($route))->assertForbidden();
             $this->actingAs($this->lwdUser())->get(route($route))->assertForbidden();
@@ -54,40 +52,77 @@ class AdminTest extends TestCase
             ->assertSee('Requests submitted')->assertSee('Waiting right now')->assertSee('WSUDD / UDEV');
     }
 
+    public function test_only_the_admin_can_click_an_office_in_the_process_flow(): void
+    {
+        $this->seed(RequirementSeeder::class);
+        $user = $this->lwdUser();
+        $project = Project::factory()->for($user)->create(['status' => ProjectStatus::Submitted, 'current_step' => 2]);
+        $waitingOnEs = route('admin.projects.index', ['waiting' => Role::Es->value]);
+
+        $this->actingAs($this->admin)->get(route('office.projects.show', $project))
+            ->assertOk()
+            ->assertSee('href="'.e($waitingOnEs).'"', false)
+            ->assertSee('href="'.e(route('admin.projects.index', ['waiting' => Role::Wsudd->value])).'"', false);
+
+        // Following the link lists the requests waiting on that office.
+        $this->actingAs($this->admin)->get($waitingOnEs)->assertOk();
+
+        $this->actingAs(User::factory()->create(['role' => Role::Wsudd]))->get(route('office.projects.show', $project))
+            ->assertOk()->assertDontSee($waitingOnEs, false);
+        $this->actingAs($user)->get(route('dashboard', ['project' => $project->id]))
+            ->assertOk()->assertDontSee($waitingOnEs, false);
+    }
+
     public function test_admin_can_view_any_project_but_not_act(): void
     {
         $this->seed(RequirementSeeder::class);
-        $project = Project::factory()->for($this->lwdUser())->create(['status' => ProjectStatus::Submitted, 'current_step' => 2, 'title' => 'Admin Visible Project']);
+        $project = Project::factory()->for($this->lwdUser())->create(['status' => ProjectStatus::Submitted, 'current_step' => 2]);
 
-        $this->actingAs($this->admin)->get(route('admin.projects.index', ['q' => $project->reference]))->assertSee('Admin Visible Project');
+        $this->actingAs($this->admin)->get(route('admin.projects.index', ['q' => $project->reference]))->assertSee($project->reference);
+        // The Action box is only shown to the office whose turn it is, so the admin sees no buttons.
         $this->actingAs($this->admin)->get(route('office.projects.show', $project))
-            ->assertOk()->assertSee('All Projects')->assertDontSee('Flag for return')->assertSee('Waiting on WSUDD / UDEV');
+            ->assertOk()->assertSee('All Projects')->assertDontSee('Flag for return')->assertDontSee('Return to Water District');
         $this->actingAs($this->admin)->post(route('office.projects.endorse', $project))->assertForbidden();
     }
 
     public function test_projects_can_be_filtered(): void
     {
         $user = $this->lwdUser();
-        Project::factory()->for($user)->create(['title' => 'Returned One', 'status' => ProjectStatus::Returned]);
-        Project::factory()->for($user)->create(['title' => 'Completed One', 'status' => ProjectStatus::Completed]);
+        $returned = Project::factory()->for($user)->create(['status' => ProjectStatus::Returned]);
+        $completed = Project::factory()->for($user)->create(['status' => ProjectStatus::Completed]);
+
+        // Look for the reference in its table cell; the search box placeholder also mentions "P001".
+        $row = fn (Project $project) => '>'.$project->reference.'</td>';
 
         $this->actingAs($this->admin)->get(route('admin.projects.index', ['status' => 'returned']))
-            ->assertSee('Returned One')->assertDontSee('Completed One');
-        $this->actingAs($this->admin)->get(route('admin.projects.index', ['q' => 'Completed']))
-            ->assertSee('Completed One')->assertDontSee('Returned One');
+            ->assertSee($row($returned), false)->assertDontSee($row($completed), false);
+        $this->actingAs($this->admin)->get(route('admin.projects.index', ['q' => $completed->reference]))
+            ->assertSee($row($completed), false)->assertDontSee($row($returned), false);
     }
 
-    public function test_files_list_every_upload_with_kind_filter(): void
+    public function test_admin_filters_apply_without_a_filter_button(): void
     {
-        Storage::fake('local');
-        $user = $this->lwdUser();
-        $project = Project::factory()->for($user)->create();
-        $project->addDocument(UploadedFile::fake()->create('internal-memo.pdf', 10, 'application/pdf'), $this->admin, internal: true);
-        $project->addDocument(UploadedFile::fake()->create('letter.pdf', 10, 'application/pdf'), $this->admin);
+        foreach (['admin.projects.index', 'admin.users.index', 'admin.water-districts.index'] as $route) {
+            $this->actingAs($this->admin)->get(route($route))
+                ->assertOk()
+                ->assertSee('x-on:change="$el.submit()"', false)
+                ->assertDontSee('>Filter</button>', false);
+        }
 
-        $this->actingAs($this->admin)->get(route('admin.documents.index'))->assertSee('internal-memo.pdf')->assertSee('letter.pdf');
-        $this->actingAs($this->admin)->get(route('admin.documents.index', ['kind' => 'internal']))
-            ->assertSee('internal-memo.pdf')->assertDontSee('letter.pdf');
+        // The Status filter has no Draft option.
+        $this->actingAs($this->admin)->get(route('admin.projects.index'))
+            ->assertSee('value="submitted"', false)->assertDontSee('value="draft"', false);
+
+        // Picking an option is an ordinary GET with the filter in the query string.
+        $returned = Project::factory()->for($this->lwdUser())->create(['status' => ProjectStatus::Returned]);
+        $this->actingAs($this->admin)->get(route('admin.projects.index', ['status' => 'returned']))
+            ->assertSee('>'.$returned->reference.'</td>', false);
+    }
+
+    public function test_there_is_no_files_page(): void
+    {
+        $this->actingAs($this->admin)->get('/admin/files')->assertNotFound();
+        $this->actingAs($this->admin)->get(route('admin.overview'))->assertDontSee('/admin/files');
     }
 
     public function test_admin_creates_an_account_with_a_temporary_password(): void
@@ -95,21 +130,57 @@ class AdminTest extends TestCase
         $this->actingAs($this->admin)->post(route('admin.users.store'), [
             'first_name' => 'Maria', 'last_name' => 'Santos', 'email' => 'maria@hillside.test',
             'role' => 'lwd', 'water_district_id' => $this->district->id, 'password' => 'Temp-1234',
-        ])->assertRedirect(route('admin.users.index'));
+        ])->assertRedirect(route('admin.water-districts.edit', $this->district));  // water district accounts live on its page
 
         $user = User::where('email', 'maria@hillside.test')->sole();
         $this->assertTrue($user->must_change_password);
         $this->assertTrue($user->waterDistrict->is($this->district));
 
-        // First login: every page sends them to set their own password.
+        // First login: every page sends them to the one-time "Set your password" screen.
         auth()->logout();
         $this->post('/login', ['email' => 'maria@hillside.test', 'password' => 'Temp-1234']);
-        $this->get('/dashboard')->assertRedirect(route('profile.edit'));
+        $this->get('/dashboard')->assertRedirect(route('password.setup'));
+        $this->get(route('password.setup'))->assertOk()->assertSee('Set your password')->assertSee('Temporary Password');
 
         $this->put('/password', ['current_password' => 'Temp-1234', 'password' => 'My-own-pass-99', 'password_confirmation' => 'My-own-pass-99'])
             ->assertRedirect(route('dashboard'));
         $this->assertFalse($user->fresh()->must_change_password);
         $this->get('/dashboard')->assertOk();
+
+        // After that, they can't change it again.
+        $this->get(route('password.setup'))->assertRedirect(route('dashboard'));
+        $this->put('/password', ['current_password' => 'My-own-pass-99', 'password' => 'Another-pass-1', 'password_confirmation' => 'Another-pass-1'])
+            ->assertForbidden();
+    }
+
+    public function test_water_district_accounts_are_only_on_the_water_district_page(): void
+    {
+        $member = User::factory()->create(['role' => Role::Lwd, 'water_district_id' => $this->district->id, 'first_name' => 'Maria', 'middle_name' => null, 'last_name' => 'Santos']);
+        $staff = User::factory()->create(['role' => Role::Es, 'first_name' => 'Ernesto', 'middle_name' => null, 'last_name' => 'Engineer']);
+
+        // The Accounts page lists LWUA staff only, and its form offers no water district role.
+        $this->actingAs($this->admin)->get(route('admin.users.index'))
+            ->assertSee('Ernesto Engineer')->assertDontSee('Maria Santos');
+        $this->actingAs($this->admin)->get(route('admin.users.index', ['role' => 'lwd']))->assertDontSee('Maria Santos');
+        $this->actingAs($this->admin)->get(route('admin.users.create'))
+            ->assertOk()->assertDontSee('value="lwd"', false)->assertDontSee('water_district_id');
+
+        // The water district's page lists its accounts and adds new ones.
+        $this->actingAs($this->admin)->get(route('admin.water-districts.edit', $this->district))
+            ->assertSee('Maria Santos')->assertSee($member->email)->assertSee('Active')
+            ->assertSee(route('admin.users.create', ['water_district' => $this->district->id]))
+            ->assertDontSee('Ernesto Engineer');
+        $this->actingAs($this->admin)->get(route('admin.users.create', ['water_district' => $this->district->id]))
+            ->assertOk()->assertSee('Hillside Water District')->assertSee('name="role" value="lwd"', false);
+
+        // Editing a water district account goes back to its water district.
+        $this->actingAs($this->admin)->get(route('admin.users.edit', $member))->assertSee(route('admin.water-districts.edit', $this->district));
+        $this->actingAs($this->admin)->put(route('admin.users.update', $member), [
+            'first_name' => 'Maria', 'last_name' => 'Reyes', 'email' => $member->email, 'role' => 'lwd', 'water_district_id' => $this->district->id,
+        ])->assertRedirect(route('admin.water-districts.edit', $this->district));
+        $this->actingAs($this->admin)->put(route('admin.users.update', $staff), [
+            'first_name' => 'Ernesto', 'last_name' => 'Engineer', 'email' => $staff->email, 'role' => 'es',
+        ])->assertRedirect(route('admin.users.index'));
     }
 
     public function test_account_rules(): void
@@ -182,19 +253,18 @@ class AdminTest extends TestCase
         $this->assertSame('D', $district->fresh()->category);
     }
 
-    public function test_departments_and_activity_pages(): void
+    public function test_there_are_no_departments_or_activity_log_pages(): void
     {
         $user = $this->lwdUser();
         $project = Project::factory()->for($user)->create(['status' => ProjectStatus::Submitted, 'current_step' => 2]);
         $project->log($user, 'Submitted the request and requirements', office: 'LWD');
-        User::factory()->create(['role' => Role::Wsudd, 'first_name' => 'Wendy', 'middle_name' => null, 'last_name' => 'Checker']);
 
-        $this->actingAs($this->admin)->get(route('admin.departments.index'))
-            ->assertSee('WSUDD / UDEV')->assertSee('Wendy Checker')->assertSee('Legal Department');
+        $this->actingAs($this->admin)->get('/admin/departments')->assertNotFound();
+        $this->actingAs($this->admin)->get('/admin/activity')->assertNotFound();
 
-        $this->actingAs($this->admin)->get(route('admin.activity.index', ['office' => 'LWD']))
-            ->assertSee('Submitted the request and requirements')->assertSee($project->reference);
-        $this->actingAs($this->admin)->get(route('admin.activity.index', ['office' => 'ES']))
-            ->assertDontSee('Submitted the request and requirements');
+        // The Overview still lists recent activity, without a link to a full log.
+        $this->actingAs($this->admin)->get(route('admin.overview'))
+            ->assertSee('Recent activity')->assertSee('Submitted the request and requirements')
+            ->assertDontSee('Activity Log')->assertDontSee('Departments');
     }
 }

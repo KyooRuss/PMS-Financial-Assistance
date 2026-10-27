@@ -36,7 +36,6 @@
                         {{ $project->type->label() }}
                         @if ($project->funding_purpose) ({{ $project->funding_purpose->label() }}) @endif
                     </p>
-                    <p class="mt-1 text-sm text-gray-500">{{ $project->title }}</p>
                 </div>
                 <button type="button" x-on:click="close()" class="rounded p-1 text-gray-700 hover:bg-gray-100" aria-label="{{ __('Close') }}">
                     <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -46,7 +45,7 @@
             @if ($project->status === \App\Enums\ProjectStatus::Returned)
                 <div class="mt-4 flex items-center justify-between gap-3 rounded-md bg-amber-50 px-4 py-3 text-sm text-amber-900 ring-1 ring-amber-200">
                     <span>{{ __('WSUDD returned this request. Fix the flagged items and resubmit.') }}</span>
-                    <a href="{{ route('projects.edit', $project) }}" class="shrink-0 rounded bg-amber-600 px-3 py-1.5 text-xs font-semibold uppercase text-white hover:bg-amber-700">{{ __('Fix & Resubmit') }}</a>
+                    <a href="{{ route('projects.edit', $project) }}" class="shrink-0 rounded bg-amber-600 px-3 py-1.5 text-xs font-semibold uppercase text-white hover:bg-amber-700">{{ __('Resubmit') }}</a>
                 </div>
             @endif
 

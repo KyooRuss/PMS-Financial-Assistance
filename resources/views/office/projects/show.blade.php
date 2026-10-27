@@ -22,7 +22,7 @@
                 <a href="{{ route('dashboard') }}" class="text-sm font-medium text-lwua-blue hover:underline">&larr; {{ __('My Queue') }}</a>
             @endif
             <div class="mt-2 flex flex-wrap items-center gap-3">
-                <h1 class="text-2xl font-bold text-lwua-navy">{{ $project->reference }} · {{ $project->title }}</h1>
+                <h1 class="text-2xl font-bold text-lwua-navy">{{ $project->reference }}</h1>
                 <span class="rounded-full px-3 py-1 text-xs font-medium {{ $project->status->badgeClasses() }}">{{ $project->status->label() }}</span>
             </div>
             <dl class="mt-3 grid gap-x-8 gap-y-2 text-sm sm:grid-cols-2 lg:grid-cols-4">
@@ -84,6 +84,7 @@
 
             {{-- Action panel + timeline --}}
             <div class="space-y-6">
+                @if ($canAct)
                 <section class="rounded-lg bg-white p-6 shadow-md ring-1 ring-black/5">
                     <h2 class="text-lg font-semibold text-lwua-navy">{{ __('Action') }}</h2>
                     <p class="mt-1 text-sm text-gray-600">{{ __('Step :n of :total', ['n' => $project->progressStep(), 'total' => count($project->steps())]) }} · {{ $step['unit'] }} – {{ $step['action'] }}</p>
@@ -102,6 +103,7 @@
                         </p>
                     @endif
                 </section>
+                @endif
 
                 <section class="rounded-lg bg-white p-6 shadow-md ring-1 ring-black/5">
                     <h2 class="text-lg font-semibold text-lwua-navy">{{ __('Timeline') }}</h2>

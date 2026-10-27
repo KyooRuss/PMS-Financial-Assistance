@@ -79,10 +79,7 @@
 
         {{-- Recent activity --}}
         <section class="rounded-lg bg-white p-6 shadow-md ring-1 ring-black/5">
-            <div class="flex items-baseline justify-between gap-4">
-                <h2 class="text-lg font-semibold text-lwua-navy">{{ __('Recent activity') }}</h2>
-                <a href="{{ route('admin.activity.index') }}" class="text-sm font-medium text-lwua-blue hover:underline">{{ __('Activity Log') }} &rarr;</a>
-            </div>
+            <h2 class="text-lg font-semibold text-lwua-navy">{{ __('Recent activity') }}</h2>
             @include('admin.partials.activity-list', ['logs' => $recent])
         </section>
     </div>

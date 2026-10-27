@@ -1,6 +1,10 @@
 @props(['project'])
 
-@php($steps = $project->steps())
+@php
+    $steps = $project->steps();
+    // The System Admin can click an office to see every request waiting on it.
+    $linksOffices = auth()->user()?->hasRole(\App\Enums\Role::SystemAdmin) ?? false;
+@endphp
 
 <div x-data="{
         scroll(direction) { $refs.track.scrollBy({ left: direction * 320, behavior: 'smooth' }) },
@@ -19,6 +23,7 @@
         @foreach ($steps as $i => $step)
             @php($number = $i + 1)
             @php($state = $project->stepState($number))
+            @php($officeUrl = $linksOffices ? route('admin.projects.index', ['waiting' => \App\Support\ProcessFlow::roleFor($step['unit'])->value]) : null)
 
             <li class="relative flex min-w-[120px] flex-1 flex-col items-center text-center"
                 @unless (in_array($state, ['done', 'upcoming'])) data-current aria-current="step" @endunless>
@@ -28,8 +33,15 @@
                     <span class="absolute left-1/2 top-5 h-0.5 w-full {{ $state === 'done' ? 'bg-lwua-blue' : 'bg-gray-200' }}" aria-hidden="true"></span>
                 @endunless
 
+                @if ($officeUrl)
+                    <a href="{{ $officeUrl }}" title="{{ __('Requests waiting on :office', ['office' => $step['unit']]) }}"
+                       class="group relative z-10 flex flex-col items-center rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-lwua-blue">
+                @else
+                    <div class="relative z-10 flex flex-col items-center">
+                @endif
+
                 <span @class([
-                    'relative z-10 flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold',
+                    'relative z-10 flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold group-hover:ring-4 group-hover:ring-blue-100',
                     'bg-green-500 text-white ring-4 ring-green-100' => $state === 'done',
                     'bg-white border-2 border-lwua-blue text-lwua-blue' => $state === 'current',
                     'bg-amber-50 border-2 border-amber-500 text-amber-600' => $state === 'returned',
@@ -47,8 +59,14 @@
                     @endif
                 </span>
 
-                <span class="mt-2 text-xs font-semibold text-lwua-navy">{{ $step['unit'] }}</span>
+                <span class="mt-2 text-xs font-semibold text-lwua-navy group-hover:text-lwua-blue group-hover:underline">{{ $step['unit'] }}</span>
                 <span class="mt-0.5 px-2 text-[11px] leading-tight text-gray-500">{{ $step['action'] }}</span>
+
+                @if ($officeUrl)
+                    </a>
+                @else
+                    </div>
+                @endif
             </li>
         @endforeach
     </ol>

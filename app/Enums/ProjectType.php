@@ -9,6 +9,17 @@ enum ProjectType: string
     case RegularAbove50M = 'regular_above_50m';
     case Emergency = 'emergency';
 
+    /** Regular loans above this amount are Above Threshold; this amount and below are Within Threshold. */
+    public const THRESHOLD = 50_000_000;
+
+    /**
+     * The regular loan type an amount belongs to.
+     */
+    public static function regularFor(float $amount): self
+    {
+        return $amount > self::THRESHOLD ? self::RegularAbove50M : self::Regular50MBelow;
+    }
+
     public function label(): string
     {
         return match ($this) {

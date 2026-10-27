@@ -38,16 +38,17 @@
                     <x-slot name="content">
                         <dl class="px-4 py-3 space-y-2 text-xs text-gray-600">
                             <div><dt class="inline font-semibold text-gray-800">{{ __('User ID:') }}</dt> <dd class="inline">{{ $user->id }}</dd></div>
-                            <div><dt class="inline font-semibold text-gray-800">{{ __('First Name:') }}</dt> <dd class="inline">{{ $user->first_name }}</dd></div>
-                            <div><dt class="inline font-semibold text-gray-800">{{ __('Last Name:') }}</dt> <dd class="inline">{{ $user->last_name }}</dd></div>
-                            <div><dt class="inline font-semibold text-gray-800">{{ __('Middle Name:') }}</dt> <dd class="inline">{{ $user->middle_name ?? '—' }}</dd></div>
+                            {{-- Surname, First Name Middle Name --}}
+                            <div><dt class="inline font-semibold text-gray-800">{{ __('Name:') }}</dt> <dd class="inline">{{ $user->last_name }}, {{ trim($user->first_name.' '.$user->middle_name) }}</dd></div>
                         </dl>
 
                         <div class="border-t border-gray-100"></div>
 
-                        <x-dropdown-link :href="route('profile.edit')">
-                            {{ __('My Profile') }}
-                        </x-dropdown-link>
+                        @if ($user->hasRole(\App\Enums\Role::SystemAdmin))
+                            <x-dropdown-link :href="route('profile.edit')">
+                                {{ __('My Profile') }}
+                            </x-dropdown-link>
+                        @endif
 
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
