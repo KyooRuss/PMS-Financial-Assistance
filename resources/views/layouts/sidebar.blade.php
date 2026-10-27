@@ -59,27 +59,6 @@
             </div>
 
             <div>
-                <p class="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-white/55">{{ __('Status') }}</p>
-                <div class="space-y-0.5">
-                    @php
-                        $inProgress = collect(\App\Http\Controllers\Admin\ProjectController::IN_PROGRESS)->sum(fn ($status) => $statusCounts[$status->value] ?? 0);
-                    @endphp
-                    <x-sidebar-link :href="route('admin.projects.index', ['status' => 'in_progress'])" :active="$filterIs('status', 'in_progress')" :count="$inProgress">{{ __('In Progress') }}</x-sidebar-link>
-                    @foreach ([
-                        \App\Enums\ProjectStatus::Returned,
-                        \App\Enums\ProjectStatus::ForCompliance,
-                        \App\Enums\ProjectStatus::Approved,
-                        \App\Enums\ProjectStatus::Completed,
-                        \App\Enums\ProjectStatus::Disapproved,
-                    ] as $status)
-                        <x-sidebar-link :href="route('admin.projects.index', ['status' => $status->value])" :active="$filterIs('status', $status->value)" :count="$statusCounts[$status->value] ?? 0">
-                            {{ $status === \App\Enums\ProjectStatus::Returned ? __('Returned') : $status->label() }}
-                        </x-sidebar-link>
-                    @endforeach
-                </div>
-            </div>
-
-            <div>
                 <p class="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-white/55">{{ __('Workflow Step') }}</p>
                 <div class="space-y-0.5">
                     @foreach ($workflow as $role)

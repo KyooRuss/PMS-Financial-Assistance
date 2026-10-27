@@ -27,8 +27,10 @@ class SidebarTest extends TestCase
             ->get(route('admin.overview'))
             ->assertOk()
             ->assertSee('Admin Portal')
-            ->assertSeeInOrder(['All Requests', 'Status', 'In Progress', 'Workflow Step', 'WSUDD / UDEV', 'Kept on file', 'Manage', 'Department Accounts', 'Water Districts', 'Processing Time'])
+            ->assertSeeInOrder(['All Requests', 'Workflow Step', 'WSUDD / UDEV', 'Kept on file', 'Manage', 'Department Accounts', 'Water Districts', 'Processing Time'])
             ->assertSee(route('admin.projects.index', ['waiting' => 'cpic']), false)
+            // No STATUS section in the sidebar (the All Projects Status filter remains).
+            ->assertDontSee(route('admin.projects.index', ['status' => 'in_progress']), false)
             ->assertDontSee('Request Project');
     }
 
