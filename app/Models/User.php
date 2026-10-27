@@ -14,8 +14,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Validation\Rule;
 
-#[Fillable(['first_name', 'middle_name', 'last_name', 'email', 'password', 'role', 'water_district_id', 'is_active', 'must_change_password'])]
+#[Fillable(['first_name', 'middle_name', 'last_name', 'username', 'email', 'password', 'role', 'water_district_id', 'is_active', 'must_change_password'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -44,6 +45,17 @@ class User extends Authenticatable
             'is_active' => 'boolean',
             'must_change_password' => 'boolean',
         ];
+    }
+
+    /**
+     * Validation for a username: lowercase letters, numbers, dots, dashes and underscores.
+     * It can't contain "@", which is how the login form tells a username from an email.
+     *
+     * @return list<mixed>
+     */
+    public static function usernameRules(?self $ignore = null): array
+    {
+        return ['required', 'string', 'min:2', 'max:50', 'regex:/^[a-z0-9._-]+$/', Rule::unique(self::class)->ignore($ignore)];
     }
 
     /**

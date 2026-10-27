@@ -31,6 +31,7 @@ class UserController extends Controller
             ->when($search !== '', fn (Builder $query) => $query->where(fn (Builder $query) => $query
                 ->where('first_name', 'like', "%{$search}%")
                 ->orWhere('last_name', 'like', "%{$search}%")
+                ->orWhere('username', 'like', "%{$search}%")
                 ->orWhere('email', 'like', "%{$search}%")))
             ->when(Role::tryFrom((string) $request->query('role')), fn (Builder $query, $role) => $query->where('role', $role))
             ->when($request->query('status') === 'active', fn (Builder $query) => $query->where('is_active', true))

@@ -7,7 +7,7 @@
             <form method="GET" class="flex flex-wrap items-end gap-3" x-data x-on:change="$el.submit()" x-on:search="$el.submit()">
                 <div>
                     <label for="q" class="block text-xs font-medium text-gray-600">{{ __('Search') }}</label>
-                    <input id="q" name="q" type="search" value="{{ request('q') }}" placeholder="{{ __('Name or email') }}"
+                    <input id="q" name="q" type="search" value="{{ request('q') }}" placeholder="{{ __('Name, username or email') }}"
                            class="mt-1 w-56 rounded-md border-gray-300 text-sm shadow-sm focus:border-lwua-blue focus:ring-lwua-blue">
                 </div>
                 <div>
@@ -43,6 +43,7 @@
                 <thead class="border-b border-gray-200 bg-gray-50 text-xs font-semibold text-gray-600">
                     <tr>
                         <th scope="col" class="px-6 py-3 text-left">{{ __('Name') }}</th>
+                        <th scope="col" class="px-6 py-3 text-left">{{ __('Username') }}</th>
                         <th scope="col" class="px-6 py-3 text-left">{{ __('Email') }}</th>
                         <th scope="col" class="px-6 py-3 text-left">{{ __('Role') }}</th>
                         <th scope="col" class="px-6 py-3 text-left">{{ __('Status') }}</th>
@@ -58,6 +59,7 @@
                                     <span class="ml-1 rounded bg-amber-50 px-1.5 py-0.5 text-[11px] text-amber-700">{{ __('Temporary password') }}</span>
                                 @endif
                             </td>
+                            <td class="px-6 py-3 whitespace-nowrap">{{ $user->username }}</td>
                             <td class="px-6 py-3">{{ $user->email }}</td>
                             <td class="px-6 py-3 whitespace-nowrap">{{ $user->role->shortLabel() }}</td>
                             <td class="px-6 py-3">
@@ -70,7 +72,7 @@
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="5" class="px-6 py-10 text-center text-gray-500">{{ __('No accounts match these filters.') }}</td></tr>
+                        <tr><td colspan="6" class="px-6 py-10 text-center text-gray-500">{{ __('No accounts match these filters.') }}</td></tr>
                     @endforelse
                 </tbody>
             </table>

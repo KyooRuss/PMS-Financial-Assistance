@@ -40,6 +40,6 @@ return Application::configure(basePath: dirname(__DIR__))
             }
 
             return redirect()->guest(route('login'))
-                ->withErrors(['email' => __('Your session has expired. Please log in again.')]);
+                ->withErrors(['login' => __('Your session has expired. Please log in again.')]);
         });
     })->create();

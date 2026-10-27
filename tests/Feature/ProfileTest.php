@@ -33,6 +33,7 @@ class ProfileTest extends TestCase
             ->patch('/profile', [
                 'first_name' => 'Test',
                 'last_name' => 'User',
+                'username' => 'tester',
                 'email' => 'test@example.com',
             ]);
 
@@ -57,6 +58,7 @@ class ProfileTest extends TestCase
             ->patch('/profile', [
                 'first_name' => 'Test',
                 'last_name' => 'User',
+                'username' => $user->username,
                 'email' => $user->email,
             ]);
 
@@ -85,7 +87,7 @@ class ProfileTest extends TestCase
             $user = User::factory()->create(['role' => $role, 'first_name' => 'Original']);
 
             $this->actingAs($user)->get('/profile')->assertForbidden();
-            $this->actingAs($user)->patch('/profile', ['first_name' => 'Changed', 'last_name' => 'Name', 'email' => $user->email])
+            $this->actingAs($user)->patch('/profile', ['first_name' => 'Changed', 'last_name' => 'Name', 'username' => $user->username, 'email' => $user->email])
                 ->assertForbidden();
 
             $this->assertSame('Original', $user->fresh()->first_name);

@@ -117,10 +117,31 @@ class AdminTest extends TestCase
         $this->actingAs($this->admin)->get(route('admin.overview'))->assertDontSee('/admin/files');
     }
 
+    public function test_account_usernames_must_be_unique_and_simple(): void
+    {
+        $taken = User::factory()->create(['username' => 'taken']);
+        $account = fn (string $username) => [
+            'first_name' => 'A', 'last_name' => 'B', 'username' => $username, 'email' => fake()->unique()->safeEmail(),
+            'role' => 'es', 'password' => 'Temp-1234',
+        ];
+
+        foreach (['taken', 'has space', 'a@b', 'a'] as $bad) {
+            $this->actingAs($this->admin)->post(route('admin.users.store'), $account($bad))->assertSessionHasErrors('username');
+        }
+
+        // Stored in lowercase.
+        $this->actingAs($this->admin)->post(route('admin.users.store'), $account('E.Reyes_2'))->assertSessionHasNoErrors();
+        $this->assertTrue(User::where('username', 'e.reyes_2')->exists());
+
+        // The Accounts list shows usernames and can be searched by them.
+        $this->actingAs($this->admin)->get(route('admin.users.index', ['q' => 'e.reyes']))
+            ->assertOk()->assertSee('e.reyes_2')->assertDontSee($taken->email);
+    }
+
     public function test_admin_creates_an_account_with_a_temporary_password(): void
     {
         $this->actingAs($this->admin)->post(route('admin.users.store'), [
-            'first_name' => 'Maria', 'last_name' => 'Santos', 'email' => 'maria@hillside.test',
+            'first_name' => 'Maria', 'last_name' => 'Santos', 'username' => 'msantos', 'email' => 'maria@hillside.test',
             'role' => 'lwd', 'water_district_id' => $this->district->id, 'password' => 'Temp-1234',
         ])->assertRedirect(route('admin.water-districts.edit', $this->district));  // water district accounts live on its page
 
@@ -130,7 +151,7 @@ class AdminTest extends TestCase
 
         // First login: every page sends them to the one-time "Set your password" screen.
         auth()->logout();
-        $this->post('/login', ['email' => 'maria@hillside.test', 'password' => 'Temp-1234']);
+        $this->post('/login', ['login' => 'maria@hillside.test', 'password' => 'Temp-1234']);
         $this->get('/dashboard')->assertRedirect(route('password.setup'));
         $this->get(route('password.setup'))->assertOk()->assertSee('Set your password')->assertSee('Temporary Password');
 
@@ -168,10 +189,10 @@ class AdminTest extends TestCase
         // Editing a water district account goes back to its water district.
         $this->actingAs($this->admin)->get(route('admin.users.edit', $member))->assertSee(route('admin.water-districts.edit', $this->district));
         $this->actingAs($this->admin)->put(route('admin.users.update', $member), [
-            'first_name' => 'Maria', 'last_name' => 'Reyes', 'email' => $member->email, 'role' => 'lwd', 'water_district_id' => $this->district->id,
+            'first_name' => 'Maria', 'last_name' => 'Reyes', 'username' => $member->username, 'email' => $member->email, 'role' => 'lwd', 'water_district_id' => $this->district->id,
         ])->assertRedirect(route('admin.water-districts.edit', $this->district));
         $this->actingAs($this->admin)->put(route('admin.users.update', $staff), [
-            'first_name' => 'Ernesto', 'last_name' => 'Engineer', 'email' => $staff->email, 'role' => 'es',
+            'first_name' => 'Ernesto', 'last_name' => 'Engineer', 'username' => $staff->username, 'email' => $staff->email, 'role' => 'es',
         ])->assertRedirect(route('admin.users.index'));
     }
 
@@ -179,16 +200,16 @@ class AdminTest extends TestCase
     {
         // A water district user needs a water district; office staff must not have one.
         $this->actingAs($this->admin)->post(route('admin.users.store'), [
-            'first_name' => 'A', 'last_name' => 'B', 'email' => 'a@b.test', 'role' => 'lwd', 'password' => 'Temp-1234',
+            'first_name' => 'A', 'last_name' => 'B', 'username' => 'abuser', 'email' => 'a@b.test', 'role' => 'lwd', 'password' => 'Temp-1234',
         ])->assertSessionHasErrors('water_district_id');
 
         $this->actingAs($this->admin)->post(route('admin.users.store'), [
-            'first_name' => 'A', 'last_name' => 'B', 'email' => 'a@b.test', 'role' => 'es', 'water_district_id' => $this->district->id, 'password' => 'Temp-1234',
+            'first_name' => 'A', 'last_name' => 'B', 'username' => 'abuser', 'email' => 'a@b.test', 'role' => 'es', 'water_district_id' => $this->district->id, 'password' => 'Temp-1234',
         ])->assertSessionHasErrors('water_district_id');
 
         // The admin cannot demote or deactivate themselves.
         $this->actingAs($this->admin)->put(route('admin.users.update', $this->admin), [
-            'first_name' => 'Sys', 'last_name' => 'Admin', 'email' => $this->admin->email, 'role' => 'es',
+            'first_name' => 'Sys', 'last_name' => 'Admin', 'username' => $this->admin->username, 'email' => $this->admin->email, 'role' => 'es',
         ])->assertSessionHasErrors('role');
         $this->actingAs($this->admin)->patch(route('admin.users.toggle-active', $this->admin))->assertForbidden();
     }
@@ -205,14 +226,14 @@ class AdminTest extends TestCase
         $this->assertGuest();
 
         // Cannot log in again.
-        $this->post('/login', ['email' => $user->email, 'password' => 'password'])
-            ->assertSessionHasErrors(['email' => 'This account is inactive. Please contact LWUA.']);
+        $this->post('/login', ['login' => $user->email, 'password' => 'password'])
+            ->assertSessionHasErrors(['login' => 'This account is inactive. Please contact LWUA.']);
         $this->assertGuest();
 
         // Reactivated, they can.
         $this->actingAs($this->admin)->patch(route('admin.users.toggle-active', $user));
         auth()->logout();
-        $this->post('/login', ['email' => $user->email, 'password' => 'password'])->assertRedirect(route('dashboard', absolute: false));
+        $this->post('/login', ['login' => $user->email, 'password' => 'password'])->assertRedirect(route('dashboard', absolute: false));
     }
 
     public function test_reset_password_sets_a_temporary_one(): void
@@ -225,7 +246,7 @@ class AdminTest extends TestCase
 
         $this->assertTrue($user->fresh()->must_change_password);
         auth()->logout();
-        $this->post('/login', ['email' => $user->email, 'password' => 'Reset-5678']);
+        $this->post('/login', ['login' => $user->email, 'password' => 'Reset-5678']);
         $this->assertAuthenticatedAs($user->fresh());
     }
 

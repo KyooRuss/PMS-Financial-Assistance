@@ -29,6 +29,7 @@ class UserFactory extends Factory
             'first_name' => fake()->firstName(),
             'middle_name' => fake()->lastName(),
             'last_name' => fake()->lastName(),
+            'username' => fake()->unique()->regexify('[a-z]{6}[0-9]{3}'),
             'email' => fake()->unique()->safeEmail(),
             'role' => Role::Lwd,
             'email_verified_at' => now(),

@@ -16,6 +16,16 @@ use Illuminate\Validation\Validator;
 class SaveUserRequest extends FormRequest
 {
     /**
+     * Usernames are stored in lowercase, so "JDelaCruz" becomes "jdelacruz".
+     */
+    protected function prepareForValidation(): void
+    {
+        if (is_string($this->input('username'))) {
+            $this->merge(['username' => strtolower(trim($this->input('username')))]);
+        }
+    }
+
+    /**
      * @return array<string, array<int, mixed>>
      */
     public function rules(): array
@@ -26,6 +36,7 @@ class SaveUserRequest extends FormRequest
             'first_name' => ['required', 'string', 'max:255'],
             'middle_name' => ['nullable', 'string', 'max:255'],
             'last_name' => ['required', 'string', 'max:255'],
+            'username' => User::usernameRules($user),
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique(User::class)->ignore($user)],
             'role' => ['required', new Enum(Role::class)],
             'water_district_id' => [
@@ -44,6 +55,7 @@ class SaveUserRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'username.regex' => __('Use 2–50 lowercase letters, numbers, dots, dashes or underscores.'),
             'water_district_id.required' => __('Choose the water district this user belongs to.'),
             'water_district_id.prohibited' => __('Only water district users belong to a water district.'),
         ];

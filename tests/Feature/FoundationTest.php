@@ -35,7 +35,7 @@ class FoundationTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $this->post('/login', ['email' => $user->email, 'password' => 'password'])
+        $this->post('/login', ['login' => $user->email, 'password' => 'password'])
             ->assertRedirect(route('dashboard', absolute: false));
     }
 
