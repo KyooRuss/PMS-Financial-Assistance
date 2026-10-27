@@ -36,6 +36,8 @@
             @php($number = $i + 1)
             @php($state = $project->stepState($number))
             @php($office = \App\Support\ProcessFlow::roleFor($step['unit'])->value)
+            {{-- The water district's own steps have no files modal, so they are not clickable. --}}
+            @php($clickable = $office !== \App\Enums\Role::Lwd->value)
 
             <li class="relative flex min-w-[120px] flex-1 flex-col items-center text-center"
                 @unless (in_array($state, ['done', 'upcoming'])) data-current aria-current="step" @endunless>
@@ -45,14 +47,19 @@
                     <span class="absolute left-1/2 top-5 h-0.5 w-full {{ $state === 'done' ? 'bg-lwua-blue' : 'bg-gray-200' }}" aria-hidden="true"></span>
                 @endunless
 
+                @if ($clickable)
                 <button type="button" x-on:click="select(@js($office))"
                         :aria-pressed="selectedOffice === @js($office)"
                         title="{{ __('Show files uploaded by :office', ['office' => $step['unit']]) }}"
                         class="group relative z-10 flex flex-col items-center rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-lwua-blue">
+                @else
+                <div class="relative z-10 flex flex-col items-center">
+                @endif
 
                 <span :class="selectedOffice === @js($office) && 'outline outline-2 outline-offset-4 outline-lwua-blue'"
                       @class([
-                    'relative z-10 flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold group-hover:ring-4 group-hover:ring-blue-100',
+                    'relative z-10 flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold',
+                    'group-hover:ring-4 group-hover:ring-blue-100' => $clickable,
                     'bg-green-500 text-white ring-4 ring-green-100' => $state === 'done',
                     'bg-white border-2 border-lwua-blue text-lwua-blue' => $state === 'current',
                     'bg-amber-50 border-2 border-amber-500 text-amber-600' => $state === 'returned',
@@ -74,7 +81,11 @@
                       class="mt-2 text-xs font-semibold group-hover:text-lwua-blue group-hover:underline">{{ $step['unit'] }}</span>
                 <span class="mt-0.5 px-2 text-[11px] leading-tight text-gray-500">{{ $step['action'] }}</span>
 
+                @if ($clickable)
                 </button>
+                @else
+                </div>
+                @endif
             </li>
         @endforeach
     </ol>

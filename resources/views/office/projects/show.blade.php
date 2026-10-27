@@ -10,8 +10,9 @@
         default => null,
     };
 
-    // The files card opens on the office the request is with now.
-    $currentOffice = \App\Support\ProcessFlow::roleFor($step['unit'])->value;
+    // The System Admin sees the project's timeline beside the documents.
+    $showTimeline = auth()->user()->hasRole(\App\Enums\Role::SystemAdmin);
+    $hasSidebar = $canAct || $showTimeline;
 @endphp
 
 <x-app-layout>
@@ -36,7 +37,8 @@
             </dl>
         </div>
 
-        <x-process-flow :project="$project" :selected-office="$currentOffice" :toggleable="false" />
+        {{-- Clicking an office opens a modal with the files that office uploaded. --}}
+        <x-process-flow :project="$project" />
 
         @if ($errors->any())
             <div role="alert" class="rounded-md bg-red-50 px-4 py-3 text-sm text-red-700 ring-1 ring-red-200">
@@ -52,7 +54,7 @@
 
         <div class="grid gap-6 lg:grid-cols-3">
             {{-- Documents --}}
-            <div class="space-y-6 lg:col-span-2">
+            <div @class(['space-y-6', 'lg:col-span-2' => $hasSidebar, 'lg:col-span-3' => ! $hasSidebar])>
                 @include('office.projects.partials.assessment-summary')
 
                 @if ($project->compliance_requested_at)
@@ -85,7 +87,8 @@
                 @endif
             </div>
 
-            {{-- Action panel + files --}}
+            {{-- Action panel + timeline --}}
+            @if ($hasSidebar)
             <div class="space-y-6">
                 @if ($canAct)
                 <section class="rounded-lg bg-white p-6 shadow-md ring-1 ring-black/5">
@@ -108,19 +111,20 @@
                 </section>
                 @endif
 
-                {{-- Files uploaded by the office selected on the stepper (the current office at first). --}}
-                <section x-data="{ selectedOffice: @js($currentOffice) }"
-                         x-on:office-selected.window="selectedOffice = $event.detail.office"
-                         class="rounded-lg bg-white p-6 shadow-md ring-1 ring-black/5">
-                    <h2 class="text-lg font-semibold text-lwua-navy">{{ __('Files Uploaded') }}</h2>
-                    <p class="mt-1 text-xs text-gray-500">{{ __('Click an office on the process flow to see its files.') }}</p>
-                    @include('projects.partials.department-files')
-                </section>
+                @if ($showTimeline)
+                    <section class="rounded-lg bg-white p-6 shadow-md ring-1 ring-black/5">
+                        <h2 class="text-lg font-semibold text-lwua-navy">{{ __('Timeline') }}</h2>
+                        @include('projects.partials.timeline')
+                    </section>
+                @endif
             </div>
+            @endif
         </div>
 
         @if ($flagging)
             </form>
         @endif
+
+        @include('projects.partials.department-files-modal')
     </div>
 </x-app-layout>
