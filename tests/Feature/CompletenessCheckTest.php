@@ -188,7 +188,7 @@ class CompletenessCheckTest extends TestCase
         // The Action box is only shown to the office whose turn it is.
         $this->actingAs($es)->get(route('office.projects.show', $project))
             ->assertOk()
-            ->assertDontSee('Waiting on WSUDD / UDEV')
+            ->assertDontSee('Waiting on Water and Sanitation Utilities Development Department')
             ->assertDontSee('Return to Water District')
             ->assertDontSee('Flag for return');
 

@@ -19,7 +19,7 @@ enum Role: string
     {
         return match ($this) {
             self::Lwd => 'Local Water District',
-            self::Wsudd => 'WSUDD / UDEV',
+            self::Wsudd => 'Water and Sanitation Utilities Development Department',
             self::Lwrd => 'Loans and Water Rates Department',
             self::Es => 'Engineering Service',
             self::Cpic => 'Capital/Project Investment Committee',
