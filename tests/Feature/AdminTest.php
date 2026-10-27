@@ -109,6 +109,10 @@ class AdminTest extends TestCase
                 ->assertDontSee('>Filter</button>', false);
         }
 
+        // The Status filter has no Draft option.
+        $this->actingAs($this->admin)->get(route('admin.projects.index'))
+            ->assertSee('value="submitted"', false)->assertDontSee('value="draft"', false);
+
         // Picking an option is an ordinary GET with the filter in the query string.
         $returned = Project::factory()->for($this->lwdUser())->create(['status' => ProjectStatus::Returned]);
         $this->actingAs($this->admin)->get(route('admin.projects.index', ['status' => 'returned']))

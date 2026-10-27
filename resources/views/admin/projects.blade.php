@@ -15,6 +15,7 @@
                     <option value="">{{ __('All') }}</option>
                     <option value="in_progress" @selected(request('status') === 'in_progress')>{{ __('In progress (all active)') }}</option>
                     @foreach (\App\Enums\ProjectStatus::cases() as $status)
+                        @continue($status === \App\Enums\ProjectStatus::Draft)
                         <option value="{{ $status->value }}" @selected(request('status') === $status->value)>{{ $status->label() }}</option>
                     @endforeach
                 </select>
