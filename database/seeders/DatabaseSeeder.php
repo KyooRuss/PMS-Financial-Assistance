@@ -48,9 +48,7 @@ class DatabaseSeeder extends Seeder
             }
         }
 
-        if (app()->isLocal()) {
-            $this->call(SampleProjectSeeder::class);
-        }
+        // Sample projects are no longer seeded. To add them: php artisan db:seed --class=SampleProjectSeeder
     }
 
     private function account(string $email, Role $role, string $firstName, string $lastName, ?int $waterDistrictId = null): void
