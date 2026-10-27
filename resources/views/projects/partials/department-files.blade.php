@@ -7,8 +7,10 @@
     $steps = $project->steps();
     $filesByDepartment = $project->filesByDepartment(includeInternal: auth()->user()->role->isLwuaOffice());
 
-    // One panel per department, in the order it first appears on the stepper.
-    $departments = collect($steps)->unique(fn (array $step) => \App\Support\ProcessFlow::roleFor($step['unit'])->value);
+    // One panel per department, in the order it first appears on the stepper. The water district's steps are not clickable, so it has no panel.
+    $departments = collect($steps)
+        ->unique(fn (array $step) => \App\Support\ProcessFlow::roleFor($step['unit'])->value)
+        ->reject(fn (array $step) => \App\Support\ProcessFlow::roleFor($step['unit']) === \App\Enums\Role::Lwd);
 @endphp
 
 @foreach ($departments as $department)

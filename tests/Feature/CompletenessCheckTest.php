@@ -77,7 +77,14 @@ class CompletenessCheckTest extends TestCase
         $this->assertSame(Role::Wsudd, $project->current_role);
 
         $this->actingAs($this->wsudd)->get('/dashboard')
-            ->assertOk()->assertSee('My Queue')->assertSee($project->reference)->assertSee('Hillside Water District');
+            ->assertOk()->assertSee('My Queue')->assertSee($project->reference)->assertSee('Hillside Water District')
+            ->assertSee('WSUDD / UDEV checks that the submitted requirements are complete.');
+
+        // Each office's queue describes its own job.
+        $this->actingAs(User::factory()->create(['role' => Role::Legal]))->get('/dashboard')
+            ->assertOk()
+            ->assertSee('Legal prepares the Financial Assistance Contract.')
+            ->assertDontSee('WSUDD / UDEV checks that the submitted requirements are complete.');
 
         $this->actingAs(User::factory()->create(['role' => Role::Es]))->get('/dashboard')
             ->assertDontSee($project->reference);

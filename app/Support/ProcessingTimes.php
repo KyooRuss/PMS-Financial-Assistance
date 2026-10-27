@@ -91,6 +91,27 @@ class ProcessingTimes
     }
 
     /**
+     * One row per office for the report chart: its average time and how many requests wait there now, in flow order.
+     * An office with requests waiting but none finished in the period has a null average.
+     *
+     * @return Collection<int, array{role: Role, average: float|null, waiting: int}>
+     */
+    public function perOffice(): Collection
+    {
+        $averages = $this->byDepartment()->keyBy(fn ($row) => $row['role']->value);
+        $waiting = $this->waiting()->keyBy(fn ($row) => $row['role']->value);
+
+        return collect(self::DEPARTMENT_ORDER)
+            ->filter(fn (Role $role) => $averages->has($role->value) || $waiting->has($role->value))
+            ->map(fn (Role $role) => [
+                'role' => $role,
+                'average' => $averages->get($role->value)['average'] ?? null,
+                'waiting' => $waiting->get($role->value)['count'] ?? 0,
+            ])
+            ->values();
+    }
+
+    /**
      * Average, longest and count per step of each flow, in step order.
      *
      * @return array<string, Collection<int, array{label: string, role: Role, average: float, longest: float, count: int}>>

@@ -93,7 +93,9 @@ class DepartmentFilesTest extends TestCase
             ->assertOk()
             ->assertSee("selectedOffice === 'es'", false)
             ->assertSeeInOrder(['Step 3 · Rapid assessment of WD-POW', 'pow-assessment.pdf', 'Step 6 · Prepare LWUA-POW', 'lwua-pow.pdf'])
-            ->assertSee('No files uploaded by CPIC yet.');
+            ->assertSee('No files uploaded by CPIC yet.')
+            ->assertSee('Show files uploaded by ES')
+            ->assertDontSee('Show files uploaded by LWD');
     }
 
     public function test_water_district_does_not_see_internal_office_files(): void

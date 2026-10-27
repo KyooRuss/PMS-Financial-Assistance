@@ -2,7 +2,11 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <p class="text-sm font-medium text-lwua-blue">{{ $role->label() }}</p>
         <h1 class="text-2xl font-bold text-lwua-navy">{{ __('My Queue') }}</h1>
-        <p class="mt-1 text-sm text-gray-500">{{ __('Requests waiting for your office to act, longest waiting first.') }}</p>
+        {{-- What this office does, then how the queue is sorted. --}}
+        <p class="mt-1 max-w-3xl text-sm text-gray-500">
+            {{ __($role->responsibility()) }}
+            {{ __('Requests waiting for your office are listed longest waiting first.') }}
+        </p>
 
         @if ($role === \App\Enums\Role::SystemAdmin)
             <div class="mt-6 rounded-lg bg-white px-6 py-8 text-sm text-gray-500 shadow-md ring-1 ring-black/5">

@@ -26,7 +26,7 @@ class ProcessingTimeController extends Controller
         return view('office.processing-time', [
             'flow' => $flow,
             'period' => $period,
-            'departments' => $times->byDepartment(),
+            'offices' => $times->perOffice(),
             'steps' => $times->bySteps(),
             'waiting' => $times->waiting(),
             'completionHours' => $times->averageCompletionHours(),

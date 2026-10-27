@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Storage;
 
 /**
  * Local sample data so every dashboard, drawer and office queue has something in it. Not for production.
+ * DatabaseSeeder no longer calls this. Run it by hand: php artisan db:seed --class=SampleProjectSeeder
  */
 class SampleProjectSeeder extends Seeder
 {
