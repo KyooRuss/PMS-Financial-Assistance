@@ -28,9 +28,13 @@
                     </a>
                 @endforeach
 
-                {{-- The water district sees only the remarks on the items flagged for return, not the offices' general remarks. --}}
+                {{--
+                    The water district sees the remarks on the items flagged for return and WSUDD's reason for rejecting
+                    the request (the newest entry of a request WSUDD rejected), but not the offices' other remarks.
+                --}}
                 @php
-                    $showRemarks = $log->remarks && ! auth()->user()->hasRole(\App\Enums\Role::Lwd);
+                    $isRejectionReason = $loop->first && $project->disapprovedByWsudd();
+                    $showRemarks = $log->remarks && (! auth()->user()->hasRole(\App\Enums\Role::Lwd) || $isRejectionReason);
                 @endphp
                 @if ($showRemarks || $log->returnedItems->isNotEmpty())
                     <div class="mt-1 space-y-1 rounded bg-amber-50 px-3 py-2 text-xs text-amber-900">

@@ -248,7 +248,30 @@ class CompletenessCheckTest extends TestCase
         $this->actingAs($this->wsudd)->get('/dashboard')->assertViewHas('projects', fn ($projects) => $projects->isEmpty());  // no longer in WSUDD's queue
         $this->actingAs($this->wsudd)->get(route('office.projects.show', $project))->assertDontSee(route('office.projects.disapprove-request', $project));
         $this->actingAs($this->lwd)->get(route('dashboard', ['project' => $project->id, 'drawer' => 'progress']))
-            ->assertSee('Disapproved')->assertSee('WSUDD rejected this request. The request is closed.');
+            ->assertSee('Disapproved')->assertSee('WSUDD rejected this request. The request is closed.')
+            ->assertSee('Not eligible for financial assistance.');  // the reason is in the water district's timeline
+    }
+
+    public function test_the_water_district_sees_the_rejection_reason_but_not_other_office_remarks(): void
+    {
+        $project = $this->submittedProject();
+        $item16 = $this->requirementId($project, 16);
+
+        // An earlier return with a general remark, then a resubmission, then the rejection.
+        $this->actingAs($this->wsudd)->post(route('office.projects.return', $project), [
+            'remarks' => 'Please check item 16.',
+            'items' => [$item16 => ['flag' => '1', 'remarks' => 'Certification is not signed.']],
+        ]);
+        $this->actingAs($this->lwd)->put(route('projects.update', $project), [
+            'action' => 'submit', 'amount' => 20_000_000,
+            'documents' => [$item16 => [UploadedFile::fake()->create('signed-certification.pdf', 30, 'application/pdf')]],
+        ])->assertSessionHasNoErrors();
+        $this->actingAs($this->wsudd)->post(route('office.projects.disapprove-request', $project), ['remarks' => 'The water source is not sustainable.']);
+
+        $this->actingAs($this->lwd)->get(route('dashboard', ['project' => $project->id, 'drawer' => 'progress']))
+            ->assertSeeInOrder(['Rejected the request', 'The water source is not sustainable.'])
+            ->assertSee('Certification is not signed.')       // flagged-item remark, as before
+            ->assertDontSee('Please check item 16.');          // WSUDD's general remark on the return stays hidden
     }
 
     public function test_rejecting_needs_a_reason(): void
