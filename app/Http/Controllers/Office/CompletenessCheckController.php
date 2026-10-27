@@ -48,7 +48,7 @@ class CompletenessCheckController extends Controller
     }
 
     /**
-     * WSUDD disapproves the request. This ends it; no office acts on it afterwards.
+     * WSUDD rejects the request. This ends it; no office acts on it afterwards.
      */
     public function disapprove(Request $request, Project $project): RedirectResponse
     {
@@ -57,13 +57,13 @@ class CompletenessCheckController extends Controller
 
         $validated = $request->validate(
             ['remarks' => ['required', 'string', 'max:2000']],
-            ['remarks.required' => __('Give the reason for disapproving the request.')],
+            ['remarks.required' => __('Give the reason for rejecting the request.')],
         );
 
         $this->workflow->disapproveRequest($project, $request->user(), $validated['remarks']);
 
         return redirect()->route('dashboard')
-            ->with('success', __(':ref disapproved. The request is closed.', ['ref' => $project->reference]));
+            ->with('success', __(':ref rejected. The request is closed.', ['ref' => $project->reference]));
     }
 
     public function return(ReturnProjectRequest $request, Project $project): RedirectResponse

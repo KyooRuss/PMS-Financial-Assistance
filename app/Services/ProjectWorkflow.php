@@ -72,12 +72,12 @@ class ProjectWorkflow
     }
 
     /**
-     * WSUDD disapproves the request at the completeness check. This ends the request.
+     * WSUDD rejects the request at the completeness check. This ends the request.
      */
     public function disapproveRequest(Project $project, User $user, string $remarks): void
     {
         DB::transaction(function () use ($project, $user, $remarks) {
-            $project->log($user, __('Disapproved the request. The request is closed'), $remarks);
+            $project->log($user, __('Rejected the request. The request is closed'), $remarks);
             $project->update(['status' => ProjectStatus::Disapproved]);
         });
     }

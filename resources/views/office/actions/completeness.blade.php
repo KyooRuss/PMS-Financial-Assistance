@@ -13,7 +13,7 @@
 </div>
 
 <div class="mt-4">
-    <x-input-label for="remarks" :value="__('Remarks (required when disapproving)')" />
+    <x-input-label for="remarks" :value="__('Remarks (required when rejecting)')" />
     <textarea id="remarks" name="remarks" rows="3" maxlength="2000"
               class="mt-1 block w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-lwua-blue focus:ring-lwua-blue">{{ old('remarks') }}</textarea>
     <x-input-error class="mt-1" :messages="$errors->get('remarks')" />
@@ -27,15 +27,15 @@
      }"
      x-init="countFlags(); $root.closest('form').addEventListener('change', () => countFlags())">
     <button type="submit" formaction="{{ route('office.projects.endorse', $project) }}"
-            onclick="return confirm(@js(__('Endorse :ref as complete?', ['ref' => $project->reference])))"
-            class="rounded-md bg-green-700 px-4 py-2.5 text-sm font-semibold uppercase text-white shadow hover:bg-green-800">
-        {{ $project->type->isEmergency() ? __('Endorse to CPIC') : __('APPROVED') }}
+            onclick="return confirm(@js(__('Approve :ref?', ['ref' => $project->reference])))"
+            class="rounded-md bg-green-500 px-4 py-2.5 text-sm font-semibold uppercase text-white shadow hover:bg-green-800">
+        {{ __('Approve') }}
     </button>
     {{-- Ends the request: nobody acts on it after this. --}}
     <button type="submit" formaction="{{ route('office.projects.disapprove-request', $project) }}"
-            onclick="return confirm(@js(__('Disapprove :ref? This ends the request and it cannot continue.', ['ref' => $project->reference])))"
-            class="rounded-md bg-red-700 px-4 py-2.5 text-sm font-semibold uppercase text-white shadow hover:bg-red-800">
-        {{ __('DISAPPROVED') }}
+            onclick="return confirm(@js(__('Reject :ref? This ends the request and it cannot continue.', ['ref' => $project->reference])))"
+            class="rounded-md bg-red-500 px-4 py-2.5 text-sm font-semibold uppercase text-white shadow hover:bg-red-800">
+        {{ __('Reject') }}
     </button>
     <button type="submit" x-show="flagged" x-cloak
             onclick="return confirm(@js(__('Return :ref to the water district with the flagged items?', ['ref' => $project->reference])))"

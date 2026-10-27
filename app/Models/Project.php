@@ -67,7 +67,7 @@ class Project extends Model
     }
 
     /**
-     * WSUDD disapproved the request at the completeness check. That ends it at once, with no letter from LWRD.
+     * WSUDD rejected the request at the completeness check. That ends it at once, with no letter from LWRD.
      */
     public function disapprovedByWsudd(): bool
     {
@@ -239,7 +239,7 @@ class Project extends Model
                 : __('CPIC did not prioritize this request. It is kept on file for future funding.'),
             ProjectStatus::ForCompliance => __('LWRD is waiting for your post-evaluation documents and your concurrence with the cash flow projections.'),
             ProjectStatus::Disapproved => match (true) {
-                $this->disapprovedByWsudd() => __('WSUDD disapproved this request. The request is closed.'),
+                $this->disapprovedByWsudd() => __('WSUDD rejected this request. The request is closed.'),
                 $this->disapproval_letter_sent_at !== null => __('The Administrator disapproved this request. LWRD\'s letter is in the timeline.'),
                 default => __('The Administrator disapproved this request. LWRD will send you a letter.'),
             },

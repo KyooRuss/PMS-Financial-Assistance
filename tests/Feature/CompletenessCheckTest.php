@@ -91,7 +91,7 @@ class CompletenessCheckTest extends TestCase
             ->assertOk()
             ->assertSee('Submitted Requirements')
             ->assertSee('Flag for return')
-            ->assertSee('APPROVED')->assertSee('DISAPPROVED')
+            ->assertSee('Approve')->assertSee('Reject')->assertDontSee('DISAPPROVED')
             ->assertSee('x-show="flagged" x-cloak', false)  // "Return to Water District" shows only once an item is flagged
             ->assertSee('Return to Water District')
             ->assertSee('Assign a New Loan Amount')
@@ -232,7 +232,7 @@ class CompletenessCheckTest extends TestCase
         $this->assertSame(ProjectStatus::Submitted, $project->fresh()->status);
     }
 
-    public function test_wsudd_can_disapprove_a_request_which_ends_it(): void
+    public function test_wsudd_can_reject_a_request_which_ends_it(): void
     {
         $project = $this->submittedProject();
 
@@ -243,25 +243,25 @@ class CompletenessCheckTest extends TestCase
         $this->assertSame(ProjectStatus::Disapproved, $project->status);
         $this->assertNull($project->current_role);  // nobody acts on it any more (no LWRD letter either)
         $this->assertSame(2, $project->current_step);
-        $this->assertStringContainsString('Disapproved the request', $project->logs()->first()->action);
+        $this->assertStringContainsString('Rejected the request', $project->logs()->first()->action);
 
         $this->actingAs($this->wsudd)->get('/dashboard')->assertViewHas('projects', fn ($projects) => $projects->isEmpty());  // no longer in WSUDD's queue
-        $this->actingAs($this->wsudd)->get(route('office.projects.show', $project))->assertDontSee('DISAPPROVED');
+        $this->actingAs($this->wsudd)->get(route('office.projects.show', $project))->assertDontSee(route('office.projects.disapprove-request', $project));
         $this->actingAs($this->lwd)->get(route('dashboard', ['project' => $project->id, 'drawer' => 'progress']))
-            ->assertSee('Disapproved')->assertSee('WSUDD disapproved this request. The request is closed.');
+            ->assertSee('Disapproved')->assertSee('WSUDD rejected this request. The request is closed.');
     }
 
-    public function test_disapproving_needs_a_reason(): void
+    public function test_rejecting_needs_a_reason(): void
     {
         $project = $this->submittedProject();
 
         $this->actingAs($this->wsudd)->post(route('office.projects.disapprove-request', $project), ['remarks' => ''])
-            ->assertSessionHasErrors(['remarks' => 'Give the reason for disapproving the request.']);
+            ->assertSessionHasErrors(['remarks' => 'Give the reason for rejecting the request.']);
 
         $this->assertSame(ProjectStatus::Submitted, $project->fresh()->status);
     }
 
-    public function test_only_wsudd_can_disapprove_and_only_at_the_completeness_check(): void
+    public function test_only_wsudd_can_reject_and_only_at_the_completeness_check(): void
     {
         $project = $this->submittedProject();
 
@@ -272,7 +272,7 @@ class CompletenessCheckTest extends TestCase
         }
         $this->actingAs($this->lwd)->post(route('office.projects.disapprove-request', $project), ['remarks' => 'No.'])->assertForbidden();
 
-        // Once WSUDD has approved it, the request can no longer be disapproved here.
+        // Once WSUDD has approved it, the request can no longer be rejected here.
         $this->actingAs($this->wsudd)->post(route('office.projects.endorse', $project), ['amount' => 20_000_000]);
         $this->actingAs($this->wsudd)->post(route('office.projects.disapprove-request', $project), ['remarks' => 'No.'])->assertForbidden();
 
