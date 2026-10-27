@@ -1,6 +1,13 @@
 <x-app-layout>
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-        @include('admin.partials.heading', ['title' => __('All Projects'), 'subtitle' => __('Every request from every water district. Opening one shows the same review page the offices use; the System Admin can view but not act.')])
+        {{-- Filtered by "Waiting on", the description says what that office does with a request. --}}
+        @php($waitingOn = \App\Enums\Role::tryFrom((string) request('waiting')))
+        @include('admin.partials.heading', [
+            'title' => __('All Projects'),
+            'subtitle' => $waitingOn
+                ? __('Requests waiting on :office right now.', ['office' => $waitingOn->label()]).' '.__($waitingOn->responsibility())
+                : __('Every request from every water district. Click View to see its details; you can view but not act on it.'),
+        ])
 
         {{-- Filters apply as soon as an option is picked; the search box applies on Enter or when you leave it. --}}
         <form method="GET" class="flex flex-wrap items-end gap-3" x-data x-on:change="$el.submit()" x-on:search="$el.submit()">

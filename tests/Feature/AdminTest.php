@@ -65,6 +65,24 @@ class AdminTest extends TestCase
             ->assertDontSee('Requests waiting on ES');
     }
 
+    public function test_admin_sees_the_project_timeline(): void
+    {
+        $this->seed(RequirementSeeder::class);
+        $user = $this->lwdUser();
+        $project = Project::factory()->for($user)->create(['status' => ProjectStatus::Submitted, 'current_step' => 2]);
+        $project->log($user, 'Submitted the request and requirements', office: 'LWD');
+
+        $this->actingAs($this->admin)->get(route('office.projects.show', $project))
+            ->assertOk()
+            ->assertSee('Timeline')
+            ->assertSee('Submitted the request and requirements');
+
+        // Other offices do not get the timeline on this page.
+        $this->actingAs(User::factory()->create(['role' => Role::Lwrd]))->get(route('office.projects.show', $project))
+            ->assertOk()
+            ->assertDontSee('Timeline');
+    }
+
     public function test_admin_can_view_any_project_but_not_act(): void
     {
         $this->seed(RequirementSeeder::class);
@@ -75,6 +93,20 @@ class AdminTest extends TestCase
         $this->actingAs($this->admin)->get(route('office.projects.show', $project))
             ->assertOk()->assertSee('All Projects')->assertDontSee('Flag for return')->assertDontSee('Return to Water District');
         $this->actingAs($this->admin)->post(route('office.projects.endorse', $project))->assertForbidden();
+    }
+
+    public function test_description_matches_the_office_the_projects_wait_on(): void
+    {
+        $this->actingAs($this->admin)->get(route('admin.projects.index'))
+            ->assertSee('Every request from every water district.');
+
+        $this->actingAs($this->admin)->get(route('admin.projects.index', ['waiting' => 'es']))
+            ->assertSee('Requests waiting on Engineering Service right now.')
+            ->assertSee('prepares the LWUA-POW', false)
+            ->assertDontSee('Every request from every water district.');
+
+        $this->actingAs($this->admin)->get(route('admin.projects.index', ['waiting' => 'legal']))
+            ->assertSee('Legal prepares the Financial Assistance Contract.');
     }
 
     public function test_projects_can_be_filtered(): void
