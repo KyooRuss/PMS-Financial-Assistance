@@ -72,6 +72,17 @@ class ProjectWorkflow
     }
 
     /**
+     * WSUDD disapproves the request at the completeness check. This ends the request.
+     */
+    public function disapproveRequest(Project $project, User $user, string $remarks): void
+    {
+        DB::transaction(function () use ($project, $user, $remarks) {
+            $project->log($user, __('Disapproved the request. The request is closed'), $remarks);
+            $project->update(['status' => ProjectStatus::Disapproved]);
+        });
+    }
+
+    /**
      * Sends the request back to the water district with remarks on specific checklist items.
      *
      * @param  array<int, string>  $items  requirement id => what is wrong with it

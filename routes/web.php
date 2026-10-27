@@ -55,6 +55,7 @@ Route::middleware(['auth', 'role:wsudd,es,lwrd,cpic,administrator,bfmd,lpmd,lega
 
         Route::middleware('role:wsudd')->group(function () {
             Route::post('/projects/{project}/endorse', [CompletenessCheckController::class, 'endorse'])->name('projects.endorse');
+            Route::post('/projects/{project}/disapprove-request', [CompletenessCheckController::class, 'disapprove'])->name('projects.disapprove-request');
             Route::post('/projects/{project}/return', [CompletenessCheckController::class, 'return'])->name('projects.return');
         });
 

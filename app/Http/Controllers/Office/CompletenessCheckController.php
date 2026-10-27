@@ -47,6 +47,25 @@ class CompletenessCheckController extends Controller
             ->with('success', __(':ref endorsed. It is now with :unit.', ['ref' => $project->reference, 'unit' => $project->currentStep()['unit']]));
     }
 
+    /**
+     * WSUDD disapproves the request. This ends it; no office acts on it afterwards.
+     */
+    public function disapprove(Request $request, Project $project): RedirectResponse
+    {
+        Gate::authorize('act', $project);
+        abort_unless($project->isAt('completeness'), 403);
+
+        $validated = $request->validate(
+            ['remarks' => ['required', 'string', 'max:2000']],
+            ['remarks.required' => __('Give the reason for disapproving the request.')],
+        );
+
+        $this->workflow->disapproveRequest($project, $request->user(), $validated['remarks']);
+
+        return redirect()->route('dashboard')
+            ->with('success', __(':ref disapproved. The request is closed.', ['ref' => $project->reference]));
+    }
+
     public function return(ReturnProjectRequest $request, Project $project): RedirectResponse
     {
         $this->workflow->returnToWaterDistrict($project, $request->user(), $request->flaggedItems(), $request->validated('remarks'));
