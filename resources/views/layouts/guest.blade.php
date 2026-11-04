@@ -31,14 +31,16 @@
                 card's right edge, so the sign above the entrance stays clear of the card. On smaller screens it is a soft
                 background behind the card.
             --}}
-            <div class="absolute inset-0 lg:left-[calc(var(--gutter)_+_var(--card)_-_6rem)] lg:[mask-image:linear-gradient(to_right,transparent,black_6rem)]" aria-hidden="true">
-                <img src="{{ asset('images/LWUAAA.png') }}" alt="" class="h-full w-full object-cover object-center lg:object-[40%_center] xl:object-[65%_center]">
+            <div class="absolute inset-0 lg:left-[calc(var(--gutter)_+_var(--card)_-1rem)] lg:[mask-image:linear-gradient(to_right,transparent,black_15rem)]" aria-hidden="true">
+                <img src="{{ asset('images/LWUAAA.png') }}" alt="" class="h-full w-full object-cover object-center lg:object-[-25%_center]">
+                <!-- Gradient blending -->
+                <div class="absolute inset-0 bg-gradient-to-r from-[#eaf6fc] via-[#eaf6fc]/5 to-transparent"></div>
                 {{-- A white veil on smaller screens, so the card stays readable over the photo --}}
                 <div class="absolute inset-0 bg-white/80 lg:hidden"></div>
             </div>
 
             {{-- Decorative bands: blue on the bottom left, red and navy on the bottom right. --}}
-            <svg class="pointer-events-none absolute inset-x-0 bottom-0 hidden h-[26vh] w-full sm:block" viewBox="0 0 1440 320" preserveAspectRatio="none" aria-hidden="true">
+            <svg class="pointer-events-none absolute inset-x-0 bottom-0 hidden h-[28vh] w-full sm:block" viewBox="0 0 1440 320" preserveAspectRatio="none" aria-hidden="true">
                 <polygon class="fill-lwua-sky/30" points="0,40 700,320 520,320 0,110" />
                 <polygon class="fill-lwua-blue/70" points="0,120 520,320 330,320 0,180" />
                 <polygon class="fill-lwua-navy" points="0,180 330,320 0,320" />
@@ -47,8 +49,8 @@
             </svg>
 
             {{-- Seal, title and card --}}
-            <div class="relative z-10 flex min-h-dvh items-center px-4 py-[clamp(1rem,4vh,2.5rem)] sm:px-12 lg:pl-[var(--gutter)]">
-                <div class="w-full max-w-[30rem]">
+            <div class="relative z-10 flex min-h-dvh -translate-y-8 translate-x-16 items-center px-4 py-[clamp(2rem,4vh,2rem)] sm:px-12 lg:pl-[var(--gutter)]">
+                <div class="w-full max-w-[40rem]">
                     <a href="{{ route('login') }}" class="inline-block rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-lwua-blue">
                         <x-application-logo class="h-[clamp(4rem,13vh,8rem)] w-[clamp(4rem,13vh,8rem)]" />
                     </a>
