@@ -67,6 +67,7 @@
                     <tr>
                         <th scope="col" class="px-6 py-3 text-left">{{ __('Office') }}</th>
                         <th scope="col" class="px-6 py-3 text-right">{{ __('Average days') }}</th>
+                        <th scope="col" class="px-6 py-3 text-right">{{ __('Longest Handling') }}</th>
                         <th scope="col" class="px-6 py-3 text-right">{{ __('Waiting now') }}</th>
                     </tr>
                 </thead>
@@ -88,10 +89,11 @@
                                     <span class="ml-2 rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-semibold text-red-700 ring-1 ring-red-100">{{ __('Slowest') }}</span>
                                 @endif
                             </td>
+                            <td class="px-6 py-3 text-right text-gray-700">{{ $fmt($row['longest']) }}</td>
                             <td class="px-6 py-3 text-right text-gray-700">{{ $row['waiting'] ?: '—' }}</td>
                         </tr>
                     @empty
-                        <tr><td colspan="3" class="px-6 py-6 text-center text-gray-500">{{ __('Nothing to show for this period yet.') }}</td></tr>
+                        <tr><td colspan="4" class="px-6 py-6 text-center text-gray-500">{{ __('Nothing to show for this period yet.') }}</td></tr>
                     @endforelse
                 </tbody>
             </table>

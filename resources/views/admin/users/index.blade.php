@@ -1,6 +1,6 @@
 <x-app-layout>
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-        @include('admin.partials.heading', ['title' => __('Department Accounts'), 'subtitle' => __('LWUA staff accounts. Water district accounts are on each water district\'s page. Accounts are made inactive instead of deleted, so names stay on the timeline and on uploaded files.')])
+        @include('admin.partials.heading', ['title' => __('Department Accounts'), 'subtitle' => __('Manage LWUA staff accounts. Accounts are deactivated instead of deleted to preserve staff names in project timelines and uploaded file records.')])
 
         <div class="flex flex-wrap items-end justify-between gap-3">
             {{-- Filters apply as soon as an option is picked; the search box applies on Enter or when you leave it. --}}

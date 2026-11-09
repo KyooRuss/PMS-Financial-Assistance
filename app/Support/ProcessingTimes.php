@@ -94,7 +94,7 @@ class ProcessingTimes
      * One row per office for the report chart: its average time and how many requests wait there now, in flow order.
      * An office with requests waiting but none finished in the period has a null average.
      *
-     * @return Collection<int, array{role: Role, average: float|null, waiting: int}>
+     * @return Collection<int, array{role: Role, average: float|null, longest: float|null, waiting: int}>
      */
     public function perOffice(): Collection
     {
@@ -106,6 +106,7 @@ class ProcessingTimes
             ->map(fn (Role $role) => [
                 'role' => $role,
                 'average' => $averages->get($role->value)['average'] ?? null,
+                'longest' => $averages->get($role->value)['longest'] ?? null,
                 'waiting' => $waiting->get($role->value)['count'] ?? 0,
             ])
             ->values();
